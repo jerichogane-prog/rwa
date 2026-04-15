@@ -5,7 +5,8 @@ import type { ListingsQuery } from '@/lib/wp';
 import { ListingGrid } from '@/components/listings/ListingGrid';
 import { Pagination } from '@/components/listings/Pagination';
 import { AdSlot } from '@/components/ads/AdSlot';
-import { SortMenu, DEFAULT_SORT, resolveSort } from '@/components/listings/SortMenu';
+import { SortMenu } from '@/components/listings/SortMenu';
+import { DEFAULT_SORT, resolveSort } from '@/components/listings/sort';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { breadcrumbSchema, itemListSchema } from '@/lib/seo/schema';
 
