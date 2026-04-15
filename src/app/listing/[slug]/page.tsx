@@ -6,6 +6,7 @@ import { fetchListing } from '@/lib/wp';
 import { Gallery } from '@/components/listings/Gallery';
 import { ListingCard } from '@/components/listings/ListingCard';
 import { ContactSellerForm } from '@/components/listings/ContactSellerForm';
+import { OwnerStatusBanner } from '@/components/listings/OwnerStatusBanner';
 import { ViewCounter } from '@/components/listings/ViewCounter';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { JsonLd } from '@/components/seo/JsonLd';
@@ -125,6 +126,8 @@ export default async function ListingPage({ params }: ListingPageProps) {
           {title}
         </span>
       </nav>
+
+      <OwnerStatusBanner sellerId={listing.seller?.id ?? null} listingId={listing.id} />
 
       <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
         <article>
