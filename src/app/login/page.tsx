@@ -18,9 +18,12 @@ function LoginInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect') || '/account';
-  const { user, login, loading } = useAuth();
+  const { user, login, loading, resendVerification } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [needsVerify, setNeedsVerify] = useState<string | null>(null);
+  const [resendNote, setResendNote] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
 
   useEffect(() => {
     if (!loading && user) {
@@ -31,16 +34,24 @@ function LoginInner() {
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
+    const username = String(data.get('username') ?? '').trim();
     setSubmitting(true);
     setError(null);
+    setNeedsVerify(null);
+    setResendNote(null);
     try {
       await login({
-        username: String(data.get('username') ?? '').trim(),
+        username,
         password: String(data.get('password') ?? ''),
       });
       router.replace(redirect);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not log you in.');
+      const message = err instanceof Error ? err.message : 'Could not log you in.';
+      // Surface the verify-link CTA when the server reports the dedicated code.
+      if (/verify your email/i.test(message)) {
+        setNeedsVerify(username);
+      }
+      setError(message);
     } finally {
       setSubmitting(false);
     }
@@ -61,6 +72,30 @@ function LoginInner() {
           <p role="alert" className="text-sm text-[color:var(--color-ruby-deep)]">
             {error}
           </p>
+        )}
+        {needsVerify && (
+          <div className="text-sm text-[color:var(--color-ink-muted)] space-y-2">
+            <button
+              type="button"
+              disabled={resending}
+              onClick={async () => {
+                setResending(true);
+                setResendNote(null);
+                try {
+                  await resendVerification(needsVerify);
+                  setResendNote('A new verification link has been sent to your email.');
+                } catch {
+                  setResendNote('Could not resend right now. Try again shortly.');
+                } finally {
+                  setResending(false);
+                }
+              }}
+              className="font-semibold text-[color:var(--color-ruby)] hover:underline disabled:opacity-70"
+            >
+              {resending ? 'Sending…' : 'Resend verification email'}
+            </button>
+            {resendNote && <p role="status">{resendNote}</p>}
+          </div>
         )}
 
         <button

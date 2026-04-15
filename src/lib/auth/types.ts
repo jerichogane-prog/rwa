@@ -26,3 +26,14 @@ export interface RegisterPayload {
   password: string;
   name?: string;
 }
+
+export interface VerificationPending {
+  requires_verification: true;
+  username: string;
+  email: string;
+  message: string;
+}
+
+export type RegisterResult =
+  | { kind: 'logged_in'; tokens: AuthTokens }
+  | { kind: 'verification_pending'; pending: VerificationPending };

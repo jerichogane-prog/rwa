@@ -1,7 +1,14 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import type { AuthTokens, AuthUser, LoginCredentials, RegisterPayload } from './types';
+import type {
+  AuthTokens,
+  AuthUser,
+  LoginCredentials,
+  RegisterPayload,
+  RegisterResult,
+  VerificationPending,
+} from './types';
 
 const STORAGE_KEY = 'rwa-auth';
 const API_BASE = `${process.env.NEXT_PUBLIC_WP_REST}/rwa/v1`;
@@ -10,9 +17,12 @@ interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   login(credentials: LoginCredentials): Promise<void>;
-  register(payload: RegisterPayload): Promise<void>;
+  register(payload: RegisterPayload): Promise<RegisterResult>;
   logout(): Promise<void>;
   authedFetch<T>(path: string, init?: RequestInit): Promise<T>;
+  verifyEmail(userId: number, hash: string): Promise<void>;
+  resendVerification(username: string): Promise<void>;
+  applyTokens(tokens: AuthTokens): void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -124,13 +134,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const register = useCallback(
-    async (payload: RegisterPayload) => {
+    async (payload: RegisterPayload): Promise<RegisterResult> => {
       const res = await fetch(`${API_BASE}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      const body = (await parseOrThrow(res)) as AuthTokens | VerificationPending;
+      if ('requires_verification' in body && body.requires_verification) {
+        return { kind: 'verification_pending', pending: body };
+      }
+      const tokens = body as AuthTokens;
+      persist(toStored(tokens));
+      return { kind: 'logged_in', tokens };
+    },
+    [persist],
+  );
+
+  const verifyEmail = useCallback(
+    async (userId: number, hash: string) => {
+      const res = await fetch(`${API_BASE}/auth/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, hash }),
+      });
       const tokens = (await parseOrThrow(res)) as AuthTokens;
+      persist(toStored(tokens));
+    },
+    [persist],
+  );
+
+  const resendVerification = useCallback(async (username: string) => {
+    const res = await fetch(`${API_BASE}/auth/resend-verification`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username }),
+    });
+    await parseOrThrow(res);
+  }, []);
+
+  const applyTokens = useCallback(
+    (tokens: AuthTokens) => {
       persist(toStored(tokens));
     },
     [persist],
@@ -192,8 +236,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       register,
       logout,
       authedFetch,
+      verifyEmail,
+      resendVerification,
+      applyTokens,
     }),
-    [state, loading, login, register, logout, authedFetch],
+    [state, loading, login, register, logout, authedFetch, verifyEmail, resendVerification, applyTokens],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
