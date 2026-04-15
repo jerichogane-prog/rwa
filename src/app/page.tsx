@@ -1,65 +1,238 @@
-import Image from "next/image";
+import Image from 'next/image';
+import Link from 'next/link';
+import { Suspense } from 'react';
+import { fetchCategories, fetchListings, fetchLocations } from '@/lib/wp';
+import { ListingCard } from '@/components/listings/ListingCard';
+import { SearchForm } from '@/components/search/SearchForm';
+import { AdSlot } from '@/components/ads/AdSlot';
+import { CategoryGrid } from '@/components/categories/CategoryGrid';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { websiteSchema } from '@/lib/seo/schema';
+import { flattenTaxonomy } from '@/lib/taxonomy';
 
-export default function Home() {
+export const revalidate = 60;
+
+async function Hero() {
+  const [categories, locations] = await Promise.all([
+    fetchCategories().catch(() => []),
+    fetchLocations().catch(() => []),
+  ]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <section className="container-page pt-10 md:pt-16">
+      <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+        <div>
+          <p className="text-xs font-semibold tracking-[0.22em] uppercase text-[color:var(--color-ruby)]">
+            Northeastern Nevada · Elko &amp; beyond
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+          <h1 className="hero-display mt-5">
+            Buy, sell &amp;<br />
+            <span className="text-[color:var(--color-ruby)]">discover locally.</span>
+          </h1>
+          <p className="mt-6 text-lg text-[color:var(--color-ink-muted)] max-w-lg">
+            Thousands of ads posted every day across vehicles, property, jobs, and everything in between — straight from your community.
+          </p>
+
+          <div className="mt-8">
+            <SearchForm
+              categories={flattenTaxonomy(categories)}
+              locations={flattenTaxonomy(locations)}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <p className="mt-3 text-xs text-[color:var(--color-ink-subtle)]">
+              Popular:{' '}
+              <Link href="/listings?category=vehicles" className="hover:text-[color:var(--color-ruby)]">
+                Vehicles
+              </Link>
+              {' · '}
+              <Link href="/listings?category=real-estate" className="hover:text-[color:var(--color-ruby)]">
+                Real estate
+              </Link>
+              {' · '}
+              <Link href="/listings?category=jobs" className="hover:text-[color:var(--color-ruby)]">
+                Jobs
+              </Link>
+              {' · '}
+              <Link href="/listings?featured=1" className="hover:text-[color:var(--color-ruby)]">
+                Featured
+              </Link>
+            </p>
+          </div>
         </div>
-      </main>
+
+        <div className="relative">
+          <div className="relative aspect-[4/3] lg:aspect-[5/6] overflow-hidden rounded-[var(--radius-xl)] shadow-[var(--shadow-lift)]">
+            <Image
+              src="/brand/elko.jpg"
+              alt="Hilton Centennial Tower, downtown Elko, Nevada"
+              fill
+              priority
+              sizes="(min-width: 1024px) 540px, 100vw"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[color:var(--color-ink)]/65 via-transparent to-transparent" />
+            <div className="absolute bottom-5 left-5 right-5 text-white">
+              <p className="text-[10px] font-semibold tracking-[0.2em] uppercase opacity-80">
+                Hilton Centennial Tower
+              </p>
+              <p className="mt-1 text-sm opacity-95">Downtown Elko, Nevada</p>
+            </div>
+          </div>
+
+          <div className="hidden lg:block absolute -top-4 -left-4 w-24 h-24 rounded-full bg-[color:var(--color-ruby-soft)] -z-10" aria-hidden />
+          <div className="hidden lg:block absolute -bottom-6 -right-6 w-32 h-32 rounded-[var(--radius-xl)] bg-[color:var(--color-ruby)]/10 -z-10" aria-hidden />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+async function FeaturedSection() {
+  const featured = await fetchListings({ featured: true, per_page: 4 }).catch(() => ({
+    items: [],
+    total: 0,
+    totalPages: 0,
+  }));
+
+  if (featured.items.length === 0) return null;
+
+  const hero = featured.items[0];
+  const rest = featured.items.slice(1, 4);
+
+  return (
+    <section className="container-page mt-16 md:mt-24">
+      <div className="flex items-end justify-between gap-4 mb-6">
+        <div>
+          <p className="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-ruby)]">
+            Featured
+          </p>
+          <h2 className="mt-1 section-title">Handpicked this week</h2>
+        </div>
+        <Link
+          href="/listings?featured=1"
+          className="hidden sm:inline-flex text-sm font-medium text-[color:var(--color-ink-muted)] hover:text-[color:var(--color-ruby)]"
+        >
+          View all →
+        </Link>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-3 lg:grid-rows-2">
+        {hero && (
+          <div className="lg:col-span-2 lg:row-span-2">
+            <ListingCard listing={hero} variant="feature" />
+          </div>
+        )}
+        {rest.map((listing) => (
+          <ListingCard key={listing.id} listing={listing} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+async function CategoriesSection() {
+  const categories = await fetchCategories().catch(() => []);
+  return <CategoryGrid categories={categories} limit={8} />;
+}
+
+async function LatestSection() {
+  const latest = await fetchListings({ per_page: 8 }).catch(() => ({
+    items: [],
+    total: 0,
+    totalPages: 0,
+  }));
+
+  return (
+    <section className="container-page mt-16 md:mt-24">
+      <div className="flex items-end justify-between gap-4 mb-6">
+        <div>
+          <p className="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-ink-subtle)]">
+            Fresh today
+          </p>
+          <h2 className="mt-1 section-title">Latest listings</h2>
+        </div>
+        <Link
+          href="/listings"
+          className="text-sm font-medium text-[color:var(--color-ink-muted)] hover:text-[color:var(--color-ruby)]"
+        >
+          Browse all →
+        </Link>
+      </div>
+
+      {latest.items.length === 0 ? (
+        <EmptyState />
+      ) : (
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {latest.items.map((listing) => (
+            <ListingCard key={listing.id} listing={listing} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="rounded-[var(--radius-lg)] border border-dashed border-[color:var(--color-border-strong)] p-12 text-center">
+      <h3 className="text-xl font-medium">No listings yet</h3>
+      <p className="mt-2 text-sm text-[color:var(--color-ink-muted)]">
+        Once the WordPress backend has ads, they&apos;ll show up here.
+      </p>
     </div>
+  );
+}
+
+function SectionSkeleton() {
+  return (
+    <section className="container-page mt-16">
+      <div className="h-8 w-48 bg-[color:var(--color-surface-sunken)] rounded-md mb-6 animate-pulse" />
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="aspect-[4/3] rounded-[var(--radius-lg)] bg-[color:var(--color-surface-sunken)] animate-pulse"
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <>
+      <JsonLd data={websiteSchema()} id="website-ld" />
+      <Hero />
+
+      <div className="container-page mt-12 md:mt-16">
+        <Suspense fallback={null}>
+          <AdSlot slot="home-leaderboard" variant="banner" />
+        </Suspense>
+      </div>
+
+      <Suspense fallback={<SectionSkeleton />}>
+        <FeaturedSection />
+      </Suspense>
+
+      <Suspense fallback={<SectionSkeleton />}>
+        <CategoriesSection />
+      </Suspense>
+
+      <div className="container-page mt-16 md:mt-20">
+        <Suspense fallback={null}>
+          <AdSlot slot="home-midroll" variant="banner" />
+        </Suspense>
+      </div>
+
+      <Suspense fallback={<SectionSkeleton />}>
+        <LatestSection />
+      </Suspense>
+
+      <div className="container-page mt-16 md:mt-20 mb-8">
+        <Suspense fallback={null}>
+          <AdSlot slot="home-footer" variant="banner" />
+        </Suspense>
+      </div>
+    </>
   );
 }

@@ -1,26 +1,148 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Palette derived from the Ruby Want Ads logo — crimson mountain + navy-charcoal wordmark */
+  --color-surface: oklch(98% 0.005 55);
+  --color-surface-raised: oklch(100% 0 0);
+  --color-surface-sunken: oklch(96% 0.008 55);
+  --color-ink: oklch(24% 0.035 265);
+  --color-ink-muted: oklch(44% 0.022 265);
+  --color-ink-subtle: oklch(62% 0.015 265);
+  --color-ruby: oklch(52% 0.19 28);
+  --color-ruby-deep: oklch(40% 0.17 28);
+  --color-ruby-soft: oklch(94% 0.04 28);
+  --color-accent: oklch(72% 0.14 65);
+  --color-border: oklch(90% 0.008 265);
+  --color-border-strong: oklch(80% 0.012 265);
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: clamp(1.05rem, 0.98rem + 0.25vw, 1.15rem);
+  --text-xl: clamp(1.25rem, 1.15rem + 0.4vw, 1.45rem);
+  --text-2xl: clamp(1.5rem, 1.3rem + 0.8vw, 1.9rem);
+  --text-3xl: clamp(2.1rem, 1.55rem + 2.1vw, 3rem);
+  --text-display: clamp(3.75rem, 2.2rem + 5.6vw, 7.25rem);
+
+  --space-gutter: clamp(1rem, 0.6rem + 1.8vw, 2rem);
+  --space-section: clamp(3rem, 2rem + 4vw, 6rem);
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+
+  --shadow-card: 0 1px 2px oklch(18% 0.02 20 / 0.04), 0 8px 24px oklch(18% 0.02 20 / 0.06);
+  --shadow-lift: 0 2px 4px oklch(18% 0.02 20 / 0.06), 0 24px 48px oklch(18% 0.02 20 / 0.10);
+
+  --duration-fast: 150ms;
+  --duration-normal: 260ms;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-surface: var(--color-surface);
+  --color-surface-raised: var(--color-surface-raised);
+  --color-surface-sunken: var(--color-surface-sunken);
+  --color-ink: var(--color-ink);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-ink-subtle: var(--color-ink-subtle);
+  --color-ruby: var(--color-ruby);
+  --color-ruby-deep: var(--color-ruby-deep);
+  --color-ruby-soft: var(--color-ruby-soft);
+  --color-accent: var(--color-accent);
+  --color-border: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-archivo);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-size: var(--text-base);
+  line-height: 1.55;
 }
+
+h1, h2, h3 {
+  font-family: var(--font-archivo), var(--font-inter), system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.02;
+  color: var(--color-ink);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-out-expo);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ruby);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.container-page {
+  width: 100%;
+  max-width: 1240px;
+  margin-inline: auto;
+  padding-inline: var(--space-gutter);
+}
+
+.hero-display {
+  font-family: var(--font-archivo), var(--font-inter), system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 4.25rem;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+}
+
+.section-title {
+  font-family: var(--font-archivo), var(--font-inter), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(2.1rem, 1.55rem + 2.1vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+}
+
+.prose-listing {
+  font-size: 1rem;
+  line-height: 1.7;
+}
+.prose-listing p { margin-block: 0.75em; }
+.prose-listing h2 { font-size: 1.5rem; font-weight: 800; margin-top: 1.5em; margin-bottom: 0.5em; }
+.prose-listing h3 { font-size: 1.2rem; font-weight: 700; margin-top: 1.25em; margin-bottom: 0.4em; }
+.prose-listing ul { list-style: disc; padding-inline-start: 1.5em; margin-block: 0.75em; }
+.prose-listing ol { list-style: decimal; padding-inline-start: 1.5em; margin-block: 0.75em; }
+.prose-listing li { margin-block: 0.25em; }
+.prose-listing a { color: var(--color-ruby); text-decoration: underline; text-underline-offset: 3px; }
+.prose-listing img { max-width: 100%; height: auto; border-radius: var(--radius-md); margin-block: 1em; }
+.prose-listing strong { font-weight: 700; }
+.prose-listing blockquote { border-inline-start: 3px solid var(--color-ruby); padding-inline-start: 1em; font-style: italic; color: var(--color-ink-muted); }
