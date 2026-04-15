@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
 import { AuthCard } from '@/components/auth/AuthCard';
 import { TextField } from '@/components/forms/TextField';
+import { AvatarField } from '@/components/forms/AvatarField';
 import { useAuth } from '@/lib/auth/AuthProvider';
 
 interface PendingState {
@@ -20,6 +21,7 @@ export default function RegisterPage() {
   const [pending, setPending] = useState<PendingState | null>(null);
   const [resending, setResending] = useState(false);
   const [resendNote, setResendNote] = useState<string | null>(null);
+  const [avatar, setAvatar] = useState<File | null>(null);
 
   useEffect(() => {
     if (!loading && user) {
@@ -38,6 +40,7 @@ export default function RegisterPage() {
         email: String(data.get('email') ?? '').trim(),
         password: String(data.get('password') ?? ''),
         name: String(data.get('name') ?? '').trim() || undefined,
+        avatar: avatar ?? null,
       });
       if (result.kind === 'verification_pending') {
         setPending({ email: result.pending.email, username: result.pending.username });
@@ -102,6 +105,7 @@ export default function RegisterPage() {
       alt={{ label: 'Already have an account?', cta: 'Log in', href: '/login' }}
     >
       <form onSubmit={onSubmit} className="space-y-4">
+        <AvatarField value={avatar} onChange={setAvatar} />
         <TextField label="Display name" name="name" autoComplete="name" hint="Shown publicly on your listings." />
         <TextField label="Username" name="username" required autoComplete="username" />
         <TextField label="Email" name="email" type="email" required autoComplete="email" />

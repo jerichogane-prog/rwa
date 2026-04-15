@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { AccountShell, AccountSection } from '@/components/account/AccountShell';
 import { TextField } from '@/components/forms/TextField';
+import { AvatarField } from '@/components/forms/AvatarField';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import type { UserProfile } from '@/lib/auth/profile';
 
@@ -76,6 +77,13 @@ function ProfilePanel() {
 
   return (
     <div className="space-y-6">
+      <AccountSection
+        title="Profile picture"
+        description="Shown on your listings and in messages to buyers."
+      >
+        <AvatarPanel profile={profile} onAvatarChange={(url) => setProfile((p) => (p ? { ...p, avatar: url } : p))} />
+      </AccountSection>
+
       <AccountSection title="Your details" description="Display name shows up on your listings; first/last name are kept private.">
         <form onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2">
           <TextField label="Display name" name="display_name" defaultValue={profile.display_name} required />
@@ -146,6 +154,105 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     <div>
       <dt className="text-xs font-semibold tracking-wider uppercase text-[color:var(--color-ink-subtle)]">{label}</dt>
       <dd className="mt-1 text-[color:var(--color-ink)]">{children}</dd>
+    </div>
+  );
+}
+
+interface AvatarPanelProps {
+  profile: UserProfile;
+  onAvatarChange(url: string): void;
+}
+
+function AvatarPanel({ profile, onAvatarChange }: AvatarPanelProps) {
+  const { authedFetch } = useAuth();
+  const [file, setFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState<'idle' | 'uploading' | 'removing'>('idle');
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const initials =
+    profile.display_name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((s) => s[0]?.toUpperCase() ?? '')
+      .join('') || profile.username.slice(0, 2).toUpperCase();
+
+  async function upload() {
+    if (!file) return;
+    setBusy('uploading');
+    setError(null);
+    setMessage(null);
+    try {
+      const form = new FormData();
+      form.append('avatar', file, file.name);
+      const res = await authedFetch<{ success: boolean; avatar: string }>('/my/avatar', {
+        method: 'POST',
+        body: form,
+      });
+      onAvatarChange(res.avatar);
+      setFile(null);
+      setMessage('Profile picture updated.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not upload photo.');
+    } finally {
+      setBusy('idle');
+    }
+  }
+
+  async function remove() {
+    if (!window.confirm('Remove your profile picture?')) return;
+    setBusy('removing');
+    setError(null);
+    setMessage(null);
+    try {
+      const res = await authedFetch<{ success: boolean; avatar: string }>('/my/avatar', {
+        method: 'DELETE',
+      });
+      onAvatarChange(res.avatar);
+      setMessage('Profile picture removed.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not remove photo.');
+    } finally {
+      setBusy('idle');
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <AvatarField
+        value={file}
+        onChange={setFile}
+        currentUrl={profile.avatar}
+        initials={initials}
+        hint={file ? 'Press Save to upload the new photo.' : 'Optional · JPEG, PNG, WebP, or GIF · up to 4MB'}
+      />
+      {error && (
+        <p role="alert" className="text-sm text-[color:var(--color-ruby-deep)]">{error}</p>
+      )}
+      {message && (
+        <p role="status" className="text-sm text-[color:var(--color-ruby-deep)]">{message}</p>
+      )}
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          disabled={!file || busy !== 'idle'}
+          onClick={upload}
+          className="inline-flex items-center px-5 py-2.5 rounded-full bg-[color:var(--color-ruby)] !text-white text-sm font-semibold hover:bg-[color:var(--color-ruby-deep)] disabled:opacity-60 transition-colors"
+        >
+          {busy === 'uploading' ? 'Uploading…' : 'Save photo'}
+        </button>
+        {profile.avatar && !file && (
+          <button
+            type="button"
+            disabled={busy !== 'idle'}
+            onClick={remove}
+            className="text-sm text-[color:var(--color-ink-muted)] hover:text-[color:var(--color-ruby)] disabled:opacity-60"
+          >
+            {busy === 'removing' ? 'Removing…' : 'Remove current photo'}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

@@ -25,6 +25,7 @@ export interface RegisterPayload {
   email: string;
   password: string;
   name?: string;
+  avatar?: File | null;
 }
 
 export interface VerificationPending {

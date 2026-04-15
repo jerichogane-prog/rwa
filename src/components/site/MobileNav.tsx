@@ -17,6 +17,7 @@ const BROWSE_LINKS = [
   { href: '/listings?type=lostfound', label: 'Lost & found' },
   { href: '/jobs', label: 'Jobs' },
   { href: '/events', label: 'Events' },
+  { href: '/help', label: 'Help & support' },
 ];
 
 function normalizeUrl(url: string): string {

@@ -19,6 +19,7 @@ const ITEMS: BrowseMenuItem[] = [
   { href: '/listings?type=lostfound', label: 'Lost & found', description: 'Lost something? Found something?', icon: '!' },
   { href: '/jobs', label: 'Jobs', description: 'Local job openings', icon: '☷' },
   { href: '/events', label: 'Events', description: 'What\u2019s happening locally', icon: '★' },
+  { href: '/help', label: 'Help & support', description: 'Guides, safety tips, and contact info', icon: '?' },
 ];
 
 export function BrowseMenu() {

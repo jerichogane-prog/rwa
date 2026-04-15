@@ -135,11 +135,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = useCallback(
     async (payload: RegisterPayload): Promise<RegisterResult> => {
-      const res = await fetch(`${API_BASE}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      // Send multipart when an avatar file is included so WP can save it in
+      // the same request; fall back to JSON otherwise.
+      const { avatar, ...fields } = payload;
+      let res: Response;
+      if (avatar instanceof File) {
+        const form = new FormData();
+        for (const [key, value] of Object.entries(fields)) {
+          if (value !== undefined && value !== null) form.append(key, String(value));
+        }
+        form.append('avatar', avatar, avatar.name);
+        res = await fetch(`${API_BASE}/auth/register`, { method: 'POST', body: form });
+      } else {
+        res = await fetch(`${API_BASE}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(fields),
+        });
+      }
       const body = (await parseOrThrow(res)) as AuthTokens | VerificationPending;
       if ('requires_verification' in body && body.requires_verification) {
         return { kind: 'verification_pending', pending: body };
