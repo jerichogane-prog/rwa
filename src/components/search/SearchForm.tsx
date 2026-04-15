@@ -83,7 +83,7 @@ export function SearchForm({ categories, locations, variant = 'hero' }: SearchFo
 
       <button
         type="submit"
-        className="h-12 px-6 rounded-[var(--radius-md)] bg-[color:var(--color-ruby)] text-white text-sm font-semibold tracking-wide hover:bg-[color:var(--color-ruby-deep)] transition-colors"
+        className="h-12 px-6 rounded-full bg-[color:var(--color-ruby)] text-white text-sm font-semibold tracking-wide hover:bg-[color:var(--color-ruby-deep)] transition-colors"
       >
         Search
       </button>

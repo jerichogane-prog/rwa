@@ -41,6 +41,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${archivo.variable}`}>
       <body className="min-h-screen flex flex-col bg-[color:var(--color-surface)] text-[color:var(--color-ink)]">
+        <a href="#main" className="skip-link">Skip to content</a>
         <AuthProvider>
           <SiteHeader />
           <main id="main" className="flex-1">

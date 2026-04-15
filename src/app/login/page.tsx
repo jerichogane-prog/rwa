@@ -1,12 +1,20 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState, type FormEvent } from 'react';
+import { Suspense, useEffect, useState, type FormEvent } from 'react';
 import { AuthCard } from '@/components/auth/AuthCard';
 import { TextField } from '@/components/forms/TextField';
 import { useAuth } from '@/lib/auth/AuthProvider';
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="container-page py-16"><div className="h-6 w-40 bg-[color:var(--color-surface-sunken)] rounded animate-pulse" /></div>}>
+      <LoginInner />
+    </Suspense>
+  );
+}
+
+function LoginInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect') || '/account';

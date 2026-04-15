@@ -118,6 +118,8 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
           categories={categories}
           locations={locations}
           activeFilters={activeFilters}
+          minPrice={minPrice}
+          maxPrice={maxPrice}
         />
 
         <div className="min-w-0">

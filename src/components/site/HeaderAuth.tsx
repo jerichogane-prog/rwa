@@ -7,7 +7,7 @@ export function HeaderAuth() {
   const { user, loading, logout } = useAuth();
 
   if (loading) {
-    return <div className="h-9 w-20 rounded-full bg-[color:var(--color-surface-sunken)] animate-pulse" />;
+    return <div className="h-10 w-28 rounded-full bg-[color:var(--color-surface-sunken)] animate-pulse" />;
   }
 
   if (!user) {

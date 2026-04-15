@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { fetchMenu } from '@/lib/wp';
 import type { MenuItem } from '@/lib/wp';
 import { HeaderAuth } from './HeaderAuth';
+import { MobileNav } from './MobileNav';
 
 function normalizeUrl(url: string): string {
   const wpUrl = process.env.NEXT_PUBLIC_WP_URL;
@@ -59,7 +60,7 @@ export async function SiteHeader() {
           <NavList items={items} />
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
           <Link
             href="/listings"
             className="hidden md:inline-flex items-center text-sm font-medium text-[color:var(--color-ink-muted)] hover:text-[color:var(--color-ink)]"
@@ -67,6 +68,7 @@ export async function SiteHeader() {
             Browse
           </Link>
           <HeaderAuth />
+          <MobileNav items={items} />
         </div>
       </div>
     </header>

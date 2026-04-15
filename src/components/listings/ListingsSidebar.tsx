@@ -9,6 +9,8 @@ interface ListingsSidebarProps {
   categories: TaxonomyNode[];
   locations: TaxonomyNode[];
   activeFilters: ActiveFilters;
+  minPrice?: number;
+  maxPrice?: number;
 }
 
 function buildHref(base: Record<string, string | undefined>, override: Record<string, string | undefined>): string {
@@ -24,10 +26,12 @@ function countNodes(nodes: TaxonomyNode[]): number {
   return nodes.reduce((sum, n) => sum + 1 + countNodes(n.children ?? []), 0);
 }
 
-export function ListingsSidebar({ categories, locations, activeFilters }: ListingsSidebarProps) {
+export function ListingsSidebar({ categories, locations, activeFilters, minPrice, maxPrice }: ListingsSidebarProps) {
   const baseParams: Record<string, string | undefined> = {
     search: activeFilters.search,
     featured: activeFilters.featured ? '1' : undefined,
+    min_price: minPrice !== undefined ? String(minPrice) : undefined,
+    max_price: maxPrice !== undefined ? String(maxPrice) : undefined,
   };
 
   return (
@@ -132,21 +136,7 @@ function FilterSection({
       <ul className="space-y-1 max-h-72 overflow-y-auto pr-1">
         <li>
           <Link
-            href={`/listings${
-              new URLSearchParams(
-                Object.entries({
-                  ...baseParams,
-                  [keepKey]: keepValue,
-                }).filter(([, v]) => v !== undefined && v !== '') as [string, string][],
-              ).toString()
-                ? `?${new URLSearchParams(
-                    Object.entries({
-                      ...baseParams,
-                      [keepKey]: keepValue,
-                    }).filter(([, v]) => v !== undefined && v !== '') as [string, string][],
-                  ).toString()}`
-                : ''
-            }`}
+            href={buildHref(baseParams, { [paramName]: undefined, [keepKey]: keepValue })}
             className={`block text-sm px-2 py-1 rounded-[var(--radius-sm)] ${
               !activeSlug
                 ? 'bg-[color:var(--color-ruby-soft)] text-[color:var(--color-ruby-deep)] font-semibold'

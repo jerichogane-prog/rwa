@@ -100,6 +100,31 @@ a {
   border-radius: 4px;
 }
 
+/* Inputs/selects/textareas opt into a ring instead — suppress the global outline so they don't double up */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+}
+
+.skip-link {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  background: var(--color-ink);
+  color: var(--color-surface-raised);
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 0 0 var(--radius-md) 0;
+  transform: translateY(-110%);
+  transition: transform var(--duration-fast) var(--ease-out-expo);
+}
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

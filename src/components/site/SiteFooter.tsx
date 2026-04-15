@@ -18,6 +18,40 @@ function normalizeUrl(url: string): string {
   return url;
 }
 
+const FOOTER_HEADINGS = ['Explore', 'Support', 'Company'] as const;
+
+function FooterMenu({ items }: { items: MenuItem[] }) {
+  if (items.length === 0) {
+    return (
+      <div className="grid gap-8 grid-cols-2 sm:grid-cols-3">
+        <FooterColumn
+          heading="Explore"
+          items={[
+            { id: -1, label: 'Browse listings', url: '/listings', target: '', classes: [], children: [] },
+            { id: -2, label: 'Categories', url: '/categories', target: '', classes: [], children: [] },
+            { id: -3, label: 'Post an ad', url: '/post-ad', target: '', classes: [], children: [] },
+          ]}
+        />
+      </div>
+    );
+  }
+  // Distribute items as evenly as possible across up to 3 columns.
+  const colCount = Math.min(3, Math.max(1, Math.ceil(items.length / 4)));
+  const perCol = Math.ceil(items.length / colCount);
+  const cols: MenuItem[][] = Array.from({ length: colCount }, (_, i) =>
+    items.slice(i * perCol, (i + 1) * perCol),
+  );
+  const gridCls =
+    colCount === 1 ? 'grid gap-8' : colCount === 2 ? 'grid gap-8 grid-cols-2' : 'grid gap-8 grid-cols-2 sm:grid-cols-3';
+  return (
+    <div className={gridCls}>
+      {cols.map((col, i) => (
+        <FooterColumn key={i} items={col} heading={FOOTER_HEADINGS[i] ?? 'More'} />
+      ))}
+    </div>
+  );
+}
+
 function FooterColumn({ items, heading }: { items: MenuItem[]; heading: string }) {
   if (items.length === 0) return null;
   return (
@@ -64,11 +98,7 @@ export async function SiteFooter() {
           </p>
         </div>
 
-        <div className="grid gap-8 grid-cols-2 sm:grid-cols-3">
-          <FooterColumn items={footerItems.slice(0, 5)} heading="Explore" />
-          <FooterColumn items={footerItems.slice(5, 10)} heading="Support" />
-          <FooterColumn items={footerItems.slice(10)} heading="Company" />
-        </div>
+        <FooterMenu items={footerItems} />
       </div>
 
       <div className="border-t border-[color:var(--color-border)]">

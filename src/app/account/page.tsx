@@ -135,7 +135,7 @@ export default function AccountPage() {
 function StatusBadge({ status }: { status: MyListing['post_status'] }) {
   const config: Record<MyListing['post_status'], { label: string; cls: string }> = {
     publish: { label: 'Live', cls: 'bg-[color:var(--color-ruby-soft)] text-[color:var(--color-ruby-deep)]' },
-    pending: { label: 'Pending review', cls: 'bg-amber-100 text-amber-800' },
+    pending: { label: 'Pending review', cls: 'bg-[oklch(95%_0.06_75)] text-[oklch(38%_0.12_60)]' },
     draft: { label: 'Draft', cls: 'bg-[color:var(--color-surface-sunken)] text-[color:var(--color-ink-muted)]' },
   };
   const c = config[status];

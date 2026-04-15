@@ -42,8 +42,8 @@ export function ListingCard({ listing, variant = 'default', priority = false }: 
         )}
 
         {listing.featured && (
-          <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-[color:var(--color-ink)] text-[color:var(--color-surface-raised)] text-[10px] font-semibold tracking-[0.14em] uppercase">
-            Featured
+          <span className="absolute top-3 left-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[color:var(--color-ruby)] text-white text-[10px] font-semibold tracking-[0.14em] uppercase shadow-[var(--shadow-card)]">
+            <span aria-hidden>★</span> Featured
           </span>
         )}
       </div>
