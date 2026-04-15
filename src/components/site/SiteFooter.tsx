@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { fetchMenu, fetchMenuBySlug } from '@/lib/wp';
 import type { MenuItem } from '@/lib/wp';
+import { PostAdButton } from './PostAdButton';
 
 const FALLBACK_CATEGORIES: MenuItem[] = [
   { id: -101, label: 'Animals', url: '/listings?category=animals', target: '', classes: [], children: [] },
@@ -106,12 +107,9 @@ function BrandColumn() {
       <p className="mt-4 max-w-sm text-sm text-[color:var(--color-ink-muted)]">
         Northeastern Nevada&apos;s classifieds marketplace — where Elko-area buyers and sellers connect.
       </p>
-      <Link
-        href="/post-ad"
-        className="mt-5 inline-flex items-center px-4 py-2 rounded-full bg-[color:var(--color-ruby)] text-white text-sm font-semibold hover:bg-[color:var(--color-ruby-deep)] transition-colors"
-      >
-        Post an ad
-      </Link>
+      <div className="mt-5">
+        <PostAdButton />
+      </div>
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { AccountShell, AccountSection } from '@/components/account/AccountShell';
+import { PostAdButton } from '@/components/site/PostAdButton';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import type { ListingSummary } from '@/lib/wp';
 
@@ -13,14 +14,7 @@ export default function AccountOverviewPage() {
     <AccountShell
       title="Account overview"
       description="A quick snapshot of your activity on Ruby Want Ads."
-      actions={
-        <Link
-          href="/post-ad"
-          className="inline-flex items-center px-4 py-2 rounded-full bg-[color:var(--color-ruby)] text-white text-sm font-semibold hover:bg-[color:var(--color-ruby-deep)] transition-colors"
-        >
-          Post a new ad
-        </Link>
-      }
+      actions={<PostAdButton label="Post a new ad" />}
     >
       <Overview />
     </AccountShell>

@@ -114,7 +114,7 @@ export default function PostAdPage() {
         <div className="mt-6 flex gap-3">
           <Link
             href="/account"
-            className="inline-flex items-center px-4 py-2 rounded-full bg-[color:var(--color-ruby)] text-white text-sm font-semibold hover:bg-[color:var(--color-ruby-deep)]"
+            className="inline-flex items-center px-4 h-10 rounded-full bg-[color:var(--color-ruby)] !text-white text-sm font-semibold hover:bg-[color:var(--color-ruby-deep)] transition-colors"
           >
             Back to account
           </Link>
@@ -165,7 +165,7 @@ export default function PostAdPage() {
         />
 
         <div className="grid grid-cols-2 gap-4">
-          <TextField label="Price (AUD)" name="price" type="number" hint="Leave 0 for POA" />
+          <TextField label="Price (USD)" name="price" type="number" hint="Leave 0 for POA" />
           <TextField label="Phone (optional)" name="phone" type="tel" autoComplete="tel" />
         </div>
 

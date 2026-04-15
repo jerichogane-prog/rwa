@@ -28,9 +28,9 @@ export function formatPrice(value: number, priceType?: string): string {
     if (priceType === 'contact') return 'Contact for price';
     return 'POA';
   }
-  return new Intl.NumberFormat('en-AU', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'AUD',
+    currency: 'USD',
     maximumFractionDigits: 0,
   }).format(value);
 }
@@ -39,7 +39,7 @@ export function formatRelativeDate(iso: string): string {
   const then = new Date(iso).getTime();
   if (Number.isNaN(then)) return '';
   const diffSec = Math.round((then - Date.now()) / 1000);
-  const rtf = new Intl.RelativeTimeFormat('en-AU', { numeric: 'auto' });
+  const rtf = new Intl.RelativeTimeFormat('en-US', { numeric: 'auto' });
   const abs = Math.abs(diffSec);
   if (abs < 60) return rtf.format(diffSec, 'second');
   if (abs < 3600) return rtf.format(Math.round(diffSec / 60), 'minute');

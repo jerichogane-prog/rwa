@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { AccountShell, AccountSection } from '@/components/account/AccountShell';
+import { PostAdButton } from '@/components/site/PostAdButton';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import type { ListingSummary } from '@/lib/wp';
 
@@ -22,14 +23,7 @@ export default function MyListingsPage() {
     <AccountShell
       title="My listings"
       description="Track and manage every ad you've posted."
-      actions={
-        <Link
-          href="/post-ad"
-          className="inline-flex items-center px-4 py-2 rounded-full bg-[color:var(--color-ruby)] text-white text-sm font-semibold hover:bg-[color:var(--color-ruby-deep)] transition-colors"
-        >
-          Post a new ad
-        </Link>
-      }
+      actions={<PostAdButton label="Post a new ad" />}
     >
       <ListingsPanel />
     </AccountShell>
