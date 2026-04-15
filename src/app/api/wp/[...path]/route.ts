@@ -37,10 +37,15 @@ function buildHeaders(req: NextRequest): Headers {
   return headers;
 }
 
+// `fetch` transparently decompresses the upstream body, so we must not
+// forward the original Content-Encoding/Content-Length — otherwise the
+// browser tries to gunzip already-decoded bytes (ERR_CONTENT_DECODING_FAILED).
+const STRIP_RESPONSE = new Set([...HOP_BY_HOP, 'content-encoding', 'content-length']);
+
 function buildResponseHeaders(res: Response): Headers {
   const headers = new Headers();
   res.headers.forEach((value, key) => {
-    if (!HOP_BY_HOP.has(key.toLowerCase())) {
+    if (!STRIP_RESPONSE.has(key.toLowerCase())) {
       headers.set(key, value);
     }
   });
