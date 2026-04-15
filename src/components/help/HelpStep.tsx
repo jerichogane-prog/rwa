@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 export type HelpStepImageKind =
@@ -18,6 +19,48 @@ export type HelpStepImageKind =
 export interface HelpStepImageProps {
   kind: HelpStepImageKind;
 }
+
+// Real screenshots captured with Playwright. Anything not in this map falls
+// back to the CSS illustration below — useful for auth-gated UI that can't
+// be captured without signing in (account, forms, notifications).
+interface ScreenshotEntry {
+  src: string;
+  alt: string;
+  fit?: 'cover-top' | 'contain';
+}
+
+const SCREENSHOTS: Partial<Record<HelpStepImageKind, ScreenshotEntry>> = {
+  register: {
+    src: '/help/register.png',
+    alt: 'Ruby Want Ads registration form showing display name, username, email, and password fields',
+    fit: 'cover-top',
+  },
+  account: {
+    src: '/help/home.png',
+    alt: 'Ruby Want Ads home page with search bar and category shortcuts',
+    fit: 'cover-top',
+  },
+  'post-button': {
+    src: '/help/post-button.png',
+    alt: 'Site header strip with the ruby-colored "Post an ad" button in the top-right',
+    fit: 'contain',
+  },
+  categories: {
+    src: '/help/categories.png',
+    alt: 'Browse-all-categories page with cards for every classified category',
+    fit: 'cover-top',
+  },
+  tabs: {
+    src: '/help/listings-grid.png',
+    alt: 'Listings page with a grid of listing cards — how your ad appears to buyers browsing',
+    fit: 'cover-top',
+  },
+  submit: {
+    src: '/help/listing-hero.png',
+    alt: 'Single listing page with image gallery, price, and contact seller form',
+    fit: 'cover-top',
+  },
+};
 
 interface HelpStepProps {
   step: number | string;
@@ -56,6 +99,24 @@ export function HelpStep({ step, title, body, cta, image }: HelpStepProps) {
 }
 
 export function HelpStepImage({ kind }: HelpStepImageProps) {
+  const shot = SCREENSHOTS[kind];
+  if (shot) {
+    const fitCls =
+      shot.fit === 'contain'
+        ? 'object-contain p-3'
+        : 'object-cover object-top';
+    return (
+      <div className="relative aspect-[16/9] bg-[color:var(--color-surface-sunken)] border-b border-[color:var(--color-border)] overflow-hidden">
+        <Image
+          src={shot.src}
+          alt={shot.alt}
+          fill
+          sizes="(min-width: 768px) 400px, 100vw"
+          className={fitCls}
+        />
+      </div>
+    );
+  }
   return (
     <div className="aspect-[16/9] bg-[color:var(--color-surface-sunken)] border-b border-[color:var(--color-border)] flex items-center justify-center p-6">
       {ILLUSTRATIONS[kind]}

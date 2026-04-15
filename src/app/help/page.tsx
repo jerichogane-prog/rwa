@@ -121,7 +121,7 @@ function GettingStarted() {
         <HelpStep
           step={3}
           title="You’re in"
-          body="From the Account menu you can post an ad, edit listings, save favorites, and update your contact info."
+          body="Land on the home page, search for what you need, or pick a category. Your avatar in the top-right opens a menu with your listings, messages, favorites, and settings."
           cta={{ href: '/account', label: 'Open my account' }}
           image={{ kind: 'account' }}
         />
@@ -160,7 +160,7 @@ function PostingAnAd() {
         <HelpStep
           step={4}
           title="Submit"
-          body="Your ad goes live after a quick review. You’ll see it in My Listings under Pending while it waits, then Live once approved."
+          body="Once approved, your ad looks like this — title, gallery, price, and a Contact Seller form buyers can use without ever seeing your email. It sits in My Listings under Pending while it waits for review."
           cta={{ href: '/post-ad', label: 'Post an ad now' }}
           image={{ kind: 'submit' }}
         />
@@ -212,8 +212,8 @@ function ManagingListings() {
       <div className="grid gap-4 md:grid-cols-3">
         <HelpStep
           step="A"
-          title="See what’s live"
-          body="The Live tab shows ads that are visible to buyers. Pending ads are still being reviewed by our team."
+          title="See how buyers find you"
+          body="Your ad shows up alongside others in the listings grid with its title, cover photo, price, and type badge. The Live tab in My Listings surfaces the ones currently visible."
           cta={{ href: '/account/listings', label: 'My listings' }}
           image={{ kind: 'tabs' }}
         />
