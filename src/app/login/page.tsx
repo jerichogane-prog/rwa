@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState, type FormEvent } from 'react';
 import { AuthCard } from '@/components/auth/AuthCard';
@@ -67,6 +68,15 @@ function LoginInner() {
       <form onSubmit={onSubmit} className="space-y-4">
         <TextField label="Username or email" name="username" autoComplete="username" required />
         <TextField label="Password" name="password" type="password" autoComplete="current-password" required />
+
+        <div className="text-right -mt-2">
+          <Link
+            href="/forgot-password"
+            className="text-sm font-medium text-[color:var(--color-ruby)] hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
 
         {error && (
           <p role="alert" className="text-sm text-[color:var(--color-ruby-deep)]">

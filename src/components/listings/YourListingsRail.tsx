@@ -67,16 +67,33 @@ export function YourListingsRail() {
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {visible.slice(0, 3).map((listing) => (
-          <div key={listing.id} className="relative">
-            {listing.post_status !== 'publish' && (
-              <span className="absolute top-2 left-2 z-10 inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wider uppercase bg-[oklch(95%_0.06_75)] text-[oklch(38%_0.12_60)] shadow-sm">
-                {listing.post_status === 'pending' ? 'Pending review' : 'Draft'}
-              </span>
-            )}
-            <ListingCard listing={listing} />
-          </div>
-        ))}
+        {visible.slice(0, 3).map((listing) => {
+          const isDraft = listing.post_status !== 'publish';
+          const card = (
+            <div className="relative">
+              {isDraft && (
+                <span className="absolute top-2 left-2 z-10 inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wider uppercase bg-[oklch(95%_0.06_75)] text-[oklch(38%_0.12_60)] shadow-sm">
+                  {listing.post_status === 'pending' ? 'Pending review' : 'Draft'}
+                </span>
+              )}
+              <ListingCard listing={listing} />
+            </div>
+          );
+          // Pending/draft listings aren't reachable on the public detail
+          // route, so intercept the click and route to the account listings
+          // manager where the owner can edit or delete instead of 404-ing.
+          return isDraft ? (
+            <Link
+              key={listing.id}
+              href="/account/listings"
+              className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-ruby)] rounded-[var(--radius-lg)]"
+            >
+              <div className="pointer-events-none">{card}</div>
+            </Link>
+          ) : (
+            <div key={listing.id}>{card}</div>
+          );
+        })}
       </div>
     </section>
   );
