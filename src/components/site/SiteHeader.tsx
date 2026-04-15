@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { fetchMenu } from '@/lib/wp';
 import type { MenuItem } from '@/lib/wp';
+import { BrowseMenu } from './BrowseMenu';
 import { HeaderAuth } from './HeaderAuth';
 import { MobileNav } from './MobileNav';
 
@@ -39,26 +40,6 @@ function NavList({ items }: { items: MenuItem[] }) {
   );
 }
 
-function BrowseIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="w-3.5 h-3.5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <rect x="3" y="3" width="7" height="7" rx="1.5" />
-      <rect x="14" y="3" width="7" height="7" rx="1.5" />
-      <rect x="3" y="14" width="7" height="7" rx="1.5" />
-      <rect x="14" y="14" width="7" height="7" rx="1.5" />
-    </svg>
-  );
-}
-
 export async function SiteHeader() {
   const items = await fetchMenu('primary');
 
@@ -81,13 +62,7 @@ export async function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2 md:gap-3">
-          <Link
-            href="/listings"
-            className="hidden md:inline-flex items-center gap-1.5 px-3 h-9 rounded-full text-sm font-semibold text-[color:var(--color-ink-muted)] hover:bg-[color:var(--color-surface-sunken)] hover:text-[color:var(--color-ink)] transition-colors"
-          >
-            <BrowseIcon />
-            Browse
-          </Link>
+          <BrowseMenu />
           <HeaderAuth />
           <MobileNav items={items} />
         </div>

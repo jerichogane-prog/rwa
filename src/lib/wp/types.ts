@@ -4,6 +4,17 @@ export interface WpTerm {
   slug: string;
 }
 
+export type AdType = 'sell' | 'buy' | 'rentlease' | 'lostfound' | 'job' | 'event';
+
+export const AD_TYPE_LABELS: Record<AdType, string> = {
+  sell: 'For sale',
+  buy: 'Wanted',
+  rentlease: 'For rent',
+  lostfound: 'Lost & found',
+  job: 'Job',
+  event: 'Event',
+};
+
 export interface ListingSummary {
   id: number;
   slug: string;
@@ -12,6 +23,7 @@ export interface ListingSummary {
   price: number;
   price_type: string;
   condition: string;
+  ad_type: AdType | '';
   featured: boolean;
   date: string;
   thumbnail: string | null;
@@ -114,6 +126,7 @@ export interface ListingsQuery {
   category?: string;
   location?: string;
   tag?: string;
+  type?: AdType;
   min_price?: number;
   max_price?: number;
   featured?: boolean;

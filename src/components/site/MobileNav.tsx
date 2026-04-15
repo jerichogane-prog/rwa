@@ -9,6 +9,16 @@ interface MobileNavProps {
   items: MenuItem[];
 }
 
+const BROWSE_LINKS = [
+  { href: '/listings', label: 'All listings' },
+  { href: '/listings?type=sell', label: 'For sale' },
+  { href: '/listings?type=buy', label: 'Wanted' },
+  { href: '/listings?type=rentlease', label: 'For rent' },
+  { href: '/listings?type=lostfound', label: 'Lost & found' },
+  { href: '/jobs', label: 'Jobs' },
+  { href: '/events', label: 'Events' },
+];
+
 function normalizeUrl(url: string): string {
   const wpUrl = process.env.NEXT_PUBLIC_WP_URL;
   if (!wpUrl || !url) return url || '/';
@@ -85,24 +95,40 @@ export function MobileNav({ items }: MobileNavProps) {
           >
             <ul className="flex flex-col">
               <li>
-                <Link
-                  href="/listings"
-                  className="block px-3 py-3 rounded-[var(--radius-md)] text-sm font-medium text-[color:var(--color-ink)] hover:bg-[color:var(--color-surface-sunken)]"
-                >
-                  Browse listings
-                </Link>
+                <p className="px-3 pt-2 pb-1 text-[10px] font-semibold tracking-[0.18em] uppercase text-[color:var(--color-ink-subtle)]">
+                  Browse
+                </p>
               </li>
-              {items.map((item) => (
-                <li key={item.id}>
+              {BROWSE_LINKS.map((item) => (
+                <li key={item.href}>
                   <Link
-                    href={normalizeUrl(item.url)}
-                    target={item.target || undefined}
-                    className="block px-3 py-3 rounded-[var(--radius-md)] text-sm font-medium text-[color:var(--color-ink-muted)] hover:bg-[color:var(--color-surface-sunken)] hover:text-[color:var(--color-ink)]"
+                    href={item.href}
+                    className="block px-3 py-2.5 rounded-[var(--radius-md)] text-sm font-medium text-[color:var(--color-ink)] hover:bg-[color:var(--color-surface-sunken)]"
                   >
                     {item.label}
                   </Link>
                 </li>
               ))}
+              {items.length > 0 && (
+                <>
+                  <li>
+                    <p className="px-3 pt-3 pb-1 text-[10px] font-semibold tracking-[0.18em] uppercase text-[color:var(--color-ink-subtle)]">
+                      Menu
+                    </p>
+                  </li>
+                  {items.map((item) => (
+                    <li key={item.id}>
+                      <Link
+                        href={normalizeUrl(item.url)}
+                        target={item.target || undefined}
+                        className="block px-3 py-2.5 rounded-[var(--radius-md)] text-sm font-medium text-[color:var(--color-ink-muted)] hover:bg-[color:var(--color-surface-sunken)] hover:text-[color:var(--color-ink)]"
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+                </>
+              )}
             </ul>
           </nav>
         </>

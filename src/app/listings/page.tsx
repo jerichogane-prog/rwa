@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { fetchCategories, fetchListings, fetchLocations } from '@/lib/wp';
+import { fetchCategories, fetchListings, fetchLocations, AD_TYPE_LABELS } from '@/lib/wp';
+import type { AdType } from '@/lib/wp';
 import { ListingGrid } from '@/components/listings/ListingGrid';
 import { Pagination } from '@/components/listings/Pagination';
 import { ListingsSidebar } from '@/components/listings/ListingsSidebar';
@@ -8,6 +9,25 @@ import { AdSlot } from '@/components/ads/AdSlot';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { breadcrumbSchema, itemListSchema } from '@/lib/seo/schema';
 import type { ActiveFilters } from '@/components/listings/FilterBar';
+
+const VALID_TYPES: AdType[] = ['sell', 'buy', 'rentlease', 'lostfound', 'job', 'event'];
+
+function asType(value: string | undefined): AdType | undefined {
+  return value && (VALID_TYPES as string[]).includes(value) ? (value as AdType) : undefined;
+}
+
+const TYPE_BLURBS: Record<AdType, string> = {
+  sell: 'Items local sellers are listing right now.',
+  buy: 'Buyers in the area looking for specific items — got one to spare?',
+  rentlease: 'Rentals and leases across northeastern Nevada.',
+  lostfound: 'Lost something or spotted a stray? Browse the latest reports.',
+  job: 'Open positions from local employers.',
+  event: 'What\u2019s happening around Elko and beyond.',
+};
+
+function typeBlurb(type: AdType): string {
+  return TYPE_BLURBS[type];
+}
 
 export const revalidate = 60;
 
@@ -34,7 +54,12 @@ export async function generateMetadata({ searchParams }: ListingsPageProps): Pro
   const params = await searchParams;
   const search = first(params.search);
   const category = first(params.category);
-  const bits = [search && `“${search}”`, category && `in ${category}`].filter(Boolean);
+  const type = asType(first(params.type));
+  const bits = [
+    type && AD_TYPE_LABELS[type].toLowerCase(),
+    search && `“${search}”`,
+    category && `in ${category}`,
+  ].filter(Boolean);
   const suffix = bits.length ? ` · ${bits.join(' ')}` : '';
   return {
     title: `Browse listings${suffix}`,
@@ -47,6 +72,7 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
   const page = toNumber(first(params.page)) ?? 1;
   const search = first(params.search);
   const category = first(params.category);
+  const type = asType(first(params.type));
   const explicitLocation = first(params.location);
   const featured = toBool(first(params.featured));
   const minPrice = toNumber(first(params.min_price));
@@ -65,6 +91,7 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
       search,
       category,
       location: effectiveLocation,
+      type,
       featured,
       min_price: minPrice,
       max_price: maxPrice,
@@ -84,6 +111,7 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
     search,
     category,
     location: effectiveLocation,
+    type,
     min_price: minPrice,
     max_price: maxPrice,
   })) {
@@ -91,6 +119,11 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
   }
   if (featured) query.set('featured', '1');
   const baseHref = query.toString() ? `/listings?${query.toString()}` : '/listings';
+
+  const heading = type ? AD_TYPE_LABELS[type] : 'Browse listings';
+  const subheading = type
+    ? typeBlurb(type)
+    : 'Every active classified across northeastern Nevada.';
 
   return (
     <div className="container-page pt-10 md:pt-14 pb-16">
@@ -114,13 +147,18 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
 
       <header className="mt-4 mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="section-title">Browse listings</h1>
-          <p className="mt-2 text-sm text-[color:var(--color-ink-muted)]">
+          {type && (
+            <p className="text-xs font-semibold tracking-[0.22em] uppercase text-[color:var(--color-ruby)]">
+              Listing type
+            </p>
+          )}
+          <h1 className="section-title mt-1">{heading}</h1>
+          <p className="mt-2 text-sm text-[color:var(--color-ink-muted)] max-w-xl">
             {total.toLocaleString()} {total === 1 ? 'listing' : 'listings'}
-            {activeFilters.search ? ` matching “${activeFilters.search}”` : ''}
+            {activeFilters.search ? ` matching “${activeFilters.search}”` : ''} · {subheading}
           </p>
         </div>
-        {(activeFilters.search || activeFilters.category || activeFilters.location || activeFilters.featured) && (
+        {(activeFilters.search || activeFilters.category || activeFilters.location || activeFilters.featured || type) && (
           <Link
             href="/listings"
             className="text-sm font-medium text-[color:var(--color-ruby)] hover:underline"

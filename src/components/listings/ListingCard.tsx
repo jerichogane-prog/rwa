@@ -1,8 +1,18 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import type { ListingSummary } from '@/lib/wp';
+import type { AdType, ListingSummary } from '@/lib/wp';
+import { AD_TYPE_LABELS } from '@/lib/wp';
 import { decodeEntities, formatPrice, formatRelativeDate } from '@/lib/format';
 import { FavoriteButton } from './FavoriteButton';
+
+const TYPE_TONE: Record<AdType, string> = {
+  sell: 'bg-[color:var(--color-ruby-soft)] text-[color:var(--color-ruby-deep)]',
+  buy: 'bg-[oklch(94%_0.05_240)] text-[oklch(35%_0.14_250)]',
+  rentlease: 'bg-[oklch(95%_0.06_150)] text-[oklch(35%_0.14_150)]',
+  lostfound: 'bg-[oklch(95%_0.06_75)] text-[oklch(38%_0.12_60)]',
+  job: 'bg-[oklch(94%_0.04_280)] text-[oklch(35%_0.14_280)]',
+  event: 'bg-[oklch(94%_0.05_320)] text-[oklch(35%_0.16_330)]',
+};
 
 interface ListingCardProps {
   listing: ListingSummary;
@@ -51,13 +61,22 @@ export function ListingCard({ listing, variant = 'default', priority = false }: 
       </div>
 
       <div className="flex-1 flex flex-col gap-3 p-5">
-        {(category || location) && (
-          <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-[color:var(--color-ink-subtle)]">
-            {category && <span>{category}</span>}
-            {category && location && <span aria-hidden>·</span>}
-            {location && <span>{location}</span>}
-          </div>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          {listing.ad_type && listing.ad_type in AD_TYPE_LABELS && (
+            <span
+              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wider uppercase ${TYPE_TONE[listing.ad_type as AdType]}`}
+            >
+              {AD_TYPE_LABELS[listing.ad_type as AdType]}
+            </span>
+          )}
+          {(category || location) && (
+            <span className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-[color:var(--color-ink-subtle)]">
+              {category && <span>{category}</span>}
+              {category && location && <span aria-hidden>·</span>}
+              {location && <span>{location}</span>}
+            </span>
+          )}
+        </div>
 
         <h3
           className={`font-[family-name:var(--font-archivo)] font-bold leading-[1.15] text-[color:var(--color-ink)] group-hover:text-[color:var(--color-ruby)] transition-colors ${
