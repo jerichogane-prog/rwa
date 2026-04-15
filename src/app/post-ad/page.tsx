@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { TextField } from '@/components/forms/TextField';
 import { ImageUploader, type PendingImage } from '@/components/forms/ImageUploader';
 import { useAuth } from '@/lib/auth/AuthProvider';
@@ -27,6 +27,7 @@ export default function PostAdPage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<SubmitResponse | null>(null);
   const [stage, setStage] = useState<'idle' | 'creating' | 'uploading'>('idle');
+  const [stateSlug, setStateSlug] = useState<string>('');
 
   useEffect(() => {
     if (!loading && !user) {
@@ -51,12 +52,21 @@ export default function PostAdPage() {
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
+    const stateValue = String(data.get('state') ?? '').trim();
+    const citySlug = String(data.get('city_slug') ?? '').trim();
+    const cityText = String(data.get('city') ?? '').trim();
     const payload = {
       title: String(data.get('title') ?? '').trim(),
       description: String(data.get('description') ?? '').trim(),
       price: Number(data.get('price') ?? 0),
       category: String(data.get('category') ?? ''),
-      location: String(data.get('location') ?? ''),
+      // Prefer the most specific taxonomy slug the user picked so the WP
+      // plugin still files the listing under the right location term.
+      location: citySlug || stateValue,
+      state: stateValue,
+      city: citySlug || cityText,
+      address: String(data.get('address') ?? '').trim(),
+      zipcode: String(data.get('zipcode') ?? '').trim(),
       phone: String(data.get('phone') ?? '').trim(),
       ad_type: String(data.get('ad_type') ?? 'sell'),
     };
@@ -78,7 +88,6 @@ export default function PostAdPage() {
             body: form,
           });
         } catch (uploadErr) {
-          // Keep the listing but surface upload warning
           setError(
             `Listing submitted, but photos failed to upload: ${
               uploadErr instanceof Error ? uploadErr.message : 'unknown error'
@@ -96,6 +105,15 @@ export default function PostAdPage() {
       setStage('idle');
     }
   }
+
+  const stateOptions = useMemo(
+    () => locations.map((n) => ({ value: n.slug, label: n.name })),
+    [locations],
+  );
+  const cityOptions = useMemo(() => {
+    const parent = locations.find((n) => n.slug === stateSlug);
+    return parent?.children?.map((n) => ({ value: n.slug, label: n.name })) ?? [];
+  }, [locations, stateSlug]);
 
   if (loading || !user) {
     return (
@@ -132,7 +150,6 @@ export default function PostAdPage() {
   }
 
   const categoryOptions = flattenTaxonomy(categories);
-  const locationOptions = flattenTaxonomy(locations);
 
   return (
     <div className="container-page pt-10 md:pt-14 pb-16 max-w-2xl">
@@ -171,10 +188,40 @@ export default function PostAdPage() {
           <TextField label="Phone (optional)" name="phone" type="tel" autoComplete="tel" />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <SelectField label="Category" name="category" options={categoryOptions} />
-          <SelectField label="Location" name="location" options={locationOptions} />
-        </div>
+        <SelectField label="Category" name="category" options={categoryOptions} />
+
+        <fieldset className="space-y-4">
+          <legend className="block text-xs font-semibold tracking-wider uppercase text-[color:var(--color-ink-subtle)]">
+            Location
+          </legend>
+          <div className="grid grid-cols-2 gap-4">
+            <PlainSelect
+              label="State"
+              name="state"
+              options={stateOptions}
+              value={stateSlug}
+              onChange={setStateSlug}
+            />
+            {cityOptions.length > 0 ? (
+              <PlainSelect label="City" name="city_slug" options={cityOptions} />
+            ) : (
+              <TextField label="City" name="city" autoComplete="address-level2" />
+            )}
+          </div>
+          <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-4">
+            <TextField
+              label="Address"
+              name="address"
+              autoComplete="street-address"
+              placeholder="Street address"
+            />
+            <TextField
+              label="Zip code"
+              name="zipcode"
+              autoComplete="postal-code"
+            />
+          </div>
+        </fieldset>
 
         <ImageUploader value={images} onChange={setImages} />
 
@@ -250,6 +297,7 @@ function AdTypePicker() {
 }
 
 interface SelectOption { value: string; label: string; depth?: number }
+
 interface SelectFieldProps { label: string; name: string; options: SelectOption[] }
 
 function SelectField({ label, name, options }: SelectFieldProps) {
@@ -270,6 +318,42 @@ function SelectField({ label, name, options }: SelectFieldProps) {
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.depth ? `${'— '.repeat(opt.depth)}${opt.label}` : opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+interface PlainSelectProps {
+  label: string;
+  name: string;
+  options: { value: string; label: string }[];
+  value?: string;
+  onChange?: (value: string) => void;
+}
+
+function PlainSelect({ label, name, options, value, onChange }: PlainSelectProps) {
+  return (
+    <div>
+      <label
+        htmlFor={`field-${name}`}
+        className="block text-xs font-semibold tracking-wider uppercase text-[color:var(--color-ink-subtle)] mb-1"
+      >
+        {label}
+      </label>
+      <select
+        id={`field-${name}`}
+        name={name}
+        value={value}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+        defaultValue={value === undefined ? '' : undefined}
+        className="w-full h-11 rounded-[var(--radius-md)] bg-[color:var(--color-surface-sunken)] px-3 text-sm focus:ring-2 focus:ring-[color:var(--color-ruby)] focus:outline-none"
+      >
+        <option value="">Select…</option>
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
           </option>
         ))}
       </select>

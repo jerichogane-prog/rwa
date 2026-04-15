@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { fetchCategories, fetchListings, fetchLocations, AD_TYPE_LABELS } from '@/lib/wp';
 import type { AdType, ListingsQuery } from '@/lib/wp';
 import { ListingGrid } from '@/components/listings/ListingGrid';
+import { YourListingsRail } from '@/components/listings/YourListingsRail';
 import { Pagination } from '@/components/listings/Pagination';
 import { ListingsSidebar } from '@/components/listings/ListingsSidebar';
 import { AdSlot } from '@/components/ads/AdSlot';
@@ -218,6 +219,7 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
 
         <div className="min-w-0">
           <AdSlot slot="listings-banner" variant="banner" className="mb-8" />
+          <YourListingsRail />
           <ListingGrid listings={items} />
           <Pagination currentPage={page} totalPages={totalPages} baseHref={baseHref} />
         </div>
