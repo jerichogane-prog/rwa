@@ -39,8 +39,17 @@ async function wpFetch<T>(
     throw new Error(`WP request failed: ${res.status} ${res.statusText} (${url})`);
   }
 
-  const data = (await res.json()) as T;
-  return { data, headers: res.headers };
+  // Read as text first so a non-JSON response (PHP warnings prepended to the
+  // body, Cloudflare challenge page, host 503 HTML) surfaces the actual
+  // payload in Vercel logs instead of a cryptic SyntaxError.
+  const text = await res.text();
+  try {
+    const data = JSON.parse(text) as T;
+    return { data, headers: res.headers };
+  } catch {
+    const snippet = text.slice(0, 200).replace(/\s+/g, ' ').trim();
+    throw new Error(`WP returned non-JSON (${res.status}) from ${url}: ${snippet}`);
+  }
 }
 
 function buildQueryString(params: Record<string, unknown>): string {
