@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 interface PostAdButtonProps {
-  variant?: 'primary' | 'compact';
+  variant?: 'primary' | 'compact' | 'header';
   label?: string;
   className?: string;
 }
@@ -10,6 +10,9 @@ interface PostAdButtonProps {
  * Single source of truth for the "Post an ad" CTA. Always renders white text,
  * and leaves enough specificity on the color so global anchor styles can't
  * override it.
+ *
+ * The "header" variant collapses to icon-only (with an SR-only label) on the
+ * smallest breakpoint so the mobile header doesn't feel cramped.
  */
 export function PostAdButton({
   variant = 'primary',
@@ -18,6 +21,20 @@ export function PostAdButton({
 }: PostAdButtonProps) {
   const base =
     'group inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-ruby)] !text-white font-semibold tracking-wide shadow-[var(--shadow-card)] hover:bg-[color:var(--color-ruby-deep)] hover:shadow-[var(--shadow-lift)] transition-[background-color,box-shadow,transform] active:scale-[0.98]';
+
+  if (variant === 'header') {
+    return (
+      <Link
+        href="/post-ad"
+        className={`${base} h-9 sm:h-10 w-9 sm:w-auto justify-center sm:justify-start sm:px-4 text-sm ${className}`}
+        aria-label={label}
+      >
+        <PlusIcon />
+        <span className="hidden sm:inline">{label}</span>
+      </Link>
+    );
+  }
+
   const size =
     variant === 'compact'
       ? 'h-9 px-3.5 text-xs'

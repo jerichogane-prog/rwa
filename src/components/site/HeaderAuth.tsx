@@ -13,8 +13,7 @@ export function HeaderAuth() {
   if (loading) {
     return (
       <div className="flex items-center gap-2">
-        <div className="hidden sm:block h-9 w-20 rounded-full bg-[color:var(--color-surface-sunken)] animate-pulse" />
-        <div className="h-10 w-28 rounded-full bg-[color:var(--color-surface-sunken)] animate-pulse" />
+        <div className="h-9 w-9 sm:w-24 rounded-full bg-[color:var(--color-surface-sunken)] animate-pulse" />
       </div>
     );
   }
@@ -28,7 +27,7 @@ export function HeaderAuth() {
         >
           Log in
         </Link>
-        <PostAdButton />
+        <PostAdButton variant="header" />
       </div>
     );
   }
@@ -94,14 +93,14 @@ function UserMenu({ displayName, email, avatar, onLogout }: UserMenuProps) {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="Account menu"
-        className={`inline-flex items-center gap-2 h-10 pl-1 pr-3 rounded-full border transition-colors ${
+        className={`inline-flex items-center gap-1.5 md:gap-2 h-9 md:h-10 pl-0.5 pr-2 md:pr-3 rounded-full border transition-colors ${
           open
             ? 'border-[color:var(--color-ruby)] bg-[color:var(--color-ruby-soft)] text-[color:var(--color-ruby-deep)]'
             : 'border-[color:var(--color-border)] text-[color:var(--color-ink-muted)] hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-ink)]'
         }`}
       >
         <Avatar avatar={avatar} initials={initials} />
-        <span className="hidden md:inline text-sm font-semibold max-w-[10ch] truncate">
+        <span className="hidden lg:inline text-sm font-semibold max-w-[10ch] truncate">
           {displayName}
         </span>
         <ChevronDown open={open} />
@@ -171,12 +170,12 @@ function Avatar({ avatar, initials }: { avatar: string; initials: string }) {
         width={32}
         height={32}
         unoptimized
-        className="w-8 h-8 rounded-full"
+        className="w-7 h-7 md:w-8 md:h-8 rounded-full"
       />
     );
   }
   return (
-    <span className="inline-flex w-8 h-8 rounded-full items-center justify-center bg-[color:var(--color-ruby)] text-white text-xs font-bold">
+    <span className="inline-flex w-7 h-7 md:w-8 md:h-8 rounded-full items-center justify-center bg-[color:var(--color-ruby)] text-white text-xs font-bold">
       {initials}
     </span>
   );

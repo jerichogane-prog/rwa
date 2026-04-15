@@ -63,7 +63,7 @@ export function MobileNav({ items }: MobileNavProps) {
         aria-label={open ? 'Close menu' : 'Open menu'}
         aria-expanded={open}
         aria-controls="mobile-nav-panel"
-        className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-full text-[color:var(--color-ink)] hover:bg-[color:var(--color-surface-sunken)] transition-colors"
+        className="lg:hidden inline-flex items-center justify-center w-9 h-9 rounded-full text-[color:var(--color-ink)] hover:bg-[color:var(--color-surface-sunken)] transition-colors"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-5 h-5" aria-hidden>
           {open ? (
@@ -91,7 +91,7 @@ export function MobileNav({ items }: MobileNavProps) {
           <nav
             id="mobile-nav-panel"
             aria-label="Mobile navigation"
-            className="lg:hidden fixed top-20 md:top-24 left-0 right-0 z-40 mx-3 rounded-[var(--radius-lg)] border border-[color:var(--color-border)] bg-[color:var(--color-surface-raised)] shadow-[var(--shadow-lift)] p-3"
+            className="lg:hidden fixed top-16 md:top-20 left-0 right-0 z-40 mx-3 rounded-[var(--radius-lg)] border border-[color:var(--color-border)] bg-[color:var(--color-surface-raised)] shadow-[var(--shadow-lift)] p-3 max-h-[calc(100vh-5rem)] overflow-y-auto"
           >
             <ul className="flex flex-col">
               <li>
