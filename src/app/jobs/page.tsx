@@ -10,8 +10,15 @@ import { breadcrumbSchema, itemListSchema } from '@/lib/seo/schema';
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: 'Jobs',
-  description: 'Local job openings posted on Ruby Want Ads across northeastern Nevada.',
+  title: 'Jobs in Elko, Nevada',
+  description:
+    'Browse local job openings in Elko and northeastern Nevada — positions posted by Ruby Mountain-area employers across every industry.',
+  alternates: { canonical: '/jobs' },
+  openGraph: {
+    title: 'Jobs in Elko, Nevada · Ruby Want Ads',
+    description: 'Local job openings posted by Elko-area employers.',
+    type: 'website',
+  },
 };
 
 interface JobsPageProps {

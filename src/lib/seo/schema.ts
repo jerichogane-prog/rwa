@@ -35,6 +35,38 @@ export function websiteSchema() {
   };
 }
 
+export function organizationSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    '@id': `${SITE_URL}#organization`,
+    name: SITE_NAME,
+    url: SITE_URL,
+    logo: `${SITE_URL}/brand/logo.png`,
+    description:
+      'Free local classifieds for northeastern Nevada. Buy, sell, rent, hire, and discover around Elko.',
+    telephone: '+1-775-777-1196',
+    email: 'info@global1media.com',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: '975 5th Street, 2nd Floor',
+      addressLocality: 'Elko',
+      addressRegion: 'NV',
+      postalCode: '89801',
+      addressCountry: 'US',
+    },
+    areaServed: {
+      '@type': 'AdministrativeArea',
+      name: 'Northeastern Nevada',
+    },
+    parentOrganization: {
+      '@type': 'Organization',
+      name: 'Global 1 Media',
+      url: 'https://global1media.com',
+    },
+  };
+}
+
 export function listingProductSchema(listing: ListingDetail) {
   const images = listing.gallery.length > 0
     ? listing.gallery.map((g) => g.url)

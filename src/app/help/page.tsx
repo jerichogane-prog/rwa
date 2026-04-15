@@ -5,7 +5,8 @@ import { HelpStep, HelpStepImage, HelpStepImageProps } from '@/components/help/H
 export const metadata: Metadata = {
   title: 'Help & support',
   description:
-    'Step-by-step guides for posting an ad, managing your account, and getting the most out of Ruby Want Ads.',
+    'Step-by-step guides for posting an ad, managing your account, photo tips, and staying safe on Ruby Want Ads.',
+  alternates: { canonical: '/help' },
 };
 
 const QUICK_LINKS = [

@@ -55,15 +55,32 @@ export async function generateMetadata({ searchParams }: ListingsPageProps): Pro
   const search = first(params.search);
   const category = first(params.category);
   const type = asType(first(params.type));
+  const location = first(params.location);
   const bits = [
     type && AD_TYPE_LABELS[type].toLowerCase(),
     search && `“${search}”`,
     category && `in ${category}`,
   ].filter(Boolean);
   const suffix = bits.length ? ` · ${bits.join(' ')}` : '';
+  const description = search
+    ? `Search Ruby Want Ads for “${search}” across Elko and northeastern Nevada classifieds.`
+    : type
+      ? `Browse ${AD_TYPE_LABELS[type].toLowerCase()} listings on Ruby Want Ads — Elko, Nevada classifieds.`
+      : 'Browse every active classified listing across northeastern Nevada — Elko, Spring Creek, Wells, and beyond.';
+
+  // Filtered listing URLs canonicalize to the base /listings page to avoid
+  // duplicate-content competition across every filter combination. The one
+  // exception is the category facet, which has its own dedicated URL.
+  const canonical = category
+    ? `/category/${category}`
+    : location
+      ? `/listings?location=${location}`
+      : '/listings';
+
   return {
     title: `Browse listings${suffix}`,
-    description: 'Browse every active classified listing across Northeastern Nevada.',
+    description,
+    alternates: { canonical },
   };
 }
 

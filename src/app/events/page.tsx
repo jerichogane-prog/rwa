@@ -10,8 +10,15 @@ import { breadcrumbSchema, itemListSchema } from '@/lib/seo/schema';
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: 'Events',
-  description: 'Local events posted by the Ruby Want Ads community across northeastern Nevada.',
+  title: 'Events in Elko, Nevada',
+  description:
+    'Find local events around Elko and northeastern Nevada — community gatherings, venue listings, and event announcements posted by neighbors.',
+  alternates: { canonical: '/events' },
+  openGraph: {
+    title: 'Events in Elko, Nevada · Ruby Want Ads',
+    description: 'What\u2019s happening around Elko — events posted by the local community.',
+    type: 'website',
+  },
 };
 
 interface EventsPageProps {

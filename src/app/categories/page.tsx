@@ -7,7 +7,9 @@ export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: 'All categories',
-  description: 'Explore every classified category on Ruby Want Ads.',
+  description:
+    'Every classified category on Ruby Want Ads — vehicles, real estate, jobs, household, services, and more across northeastern Nevada.',
+  alternates: { canonical: '/categories' },
 };
 
 function totalCount(node: TaxonomyNode): number {

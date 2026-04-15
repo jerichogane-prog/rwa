@@ -24,13 +24,29 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
     const yoast = listing.yoast;
     const decodedTitle = decodeEntities(listing.title);
     const decodedExcerpt = decodeEntities(listing.excerpt);
+    const location = listing.locations[0] ? decodeEntities(listing.locations[0].name) : 'Elko, NV';
+    const pricePart = listing.price > 0 ? formatPrice(listing.price, listing.price_type) : '';
+    const derivedDescription = [
+      pricePart,
+      decodedExcerpt || `${decodedTitle} — classified listing on Ruby Want Ads in ${location}.`,
+    ]
+      .filter(Boolean)
+      .join(' · ')
+      .slice(0, 160);
+
+    const title = decodeEntities(yoast?.title || '') || decodedTitle;
+    const description =
+      decodeEntities(yoast?.description || '') ||
+      derivedDescription ||
+      `${decodedTitle} — classified listing on Ruby Want Ads.`;
+
     return {
-      title: decodeEntities(yoast?.title || '') || decodedTitle,
-      description: decodeEntities(yoast?.description || '') || decodedExcerpt || `${decodedTitle} — classified listing on Ruby Want Ads.`,
-      alternates: yoast?.canonical ? { canonical: yoast.canonical } : undefined,
+      title,
+      description,
+      alternates: yoast?.canonical ? { canonical: yoast.canonical } : { canonical: `/listing/${listing.slug}` },
       openGraph: {
-        title: decodeEntities(yoast?.title || '') || decodedTitle,
-        description: decodeEntities(yoast?.description || '') || decodedExcerpt,
+        title,
+        description,
         type: 'article',
         images: yoast?.og_image
           ? [{ url: yoast.og_image }]
@@ -38,9 +54,14 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
             ? [{ url: listing.thumbnail }]
             : undefined,
       },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+      },
     };
   } catch {
-    return { title: 'Listing not found' };
+    return { title: 'Listing not found', robots: { index: false } };
   }
 }
 

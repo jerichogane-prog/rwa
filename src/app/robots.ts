@@ -8,10 +8,20 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/account', '/post-ad', '/login', '/register', '/api/'],
+        disallow: [
+          '/account',
+          '/account/',
+          '/post-ad',
+          '/login',
+          '/register',
+          '/verify-email',
+          '/api/',
+          // Don't waste crawl budget on faceted search combinations; the
+          // canonical tags already point to /listings, but robots speeds it up.
+          '/listings?search=*',
+        ],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,
-    host: SITE_URL,
   };
 }
