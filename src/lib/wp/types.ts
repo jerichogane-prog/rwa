@@ -85,6 +85,7 @@ export interface YoastMeta {
 export interface ListingDetail extends ListingSummary {
   content: string;
   content_raw: string;
+  view_count: number;
   gallery: GalleryImage[];
   tags: WpTerm[];
   custom_fields: CustomField[];

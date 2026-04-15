@@ -164,7 +164,7 @@ interface AvatarPanelProps {
 }
 
 function AvatarPanel({ profile, onAvatarChange }: AvatarPanelProps) {
-  const { authedFetch } = useAuth();
+  const { authedFetch, updateUser } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState<'idle' | 'uploading' | 'removing'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -190,7 +190,11 @@ function AvatarPanel({ profile, onAvatarChange }: AvatarPanelProps) {
         method: 'POST',
         body: form,
       });
-      onAvatarChange(res.avatar);
+      // Cache-bust so the <img> swaps immediately — WordPress may serve the
+      // same attachment URL when it regenerates variants.
+      const bust = res.avatar + (res.avatar.includes('?') ? '&' : '?') + 't=' + Date.now();
+      onAvatarChange(bust);
+      updateUser({ avatar: bust });
       setFile(null);
       setMessage('Profile picture updated.');
     } catch (err) {
@@ -210,6 +214,7 @@ function AvatarPanel({ profile, onAvatarChange }: AvatarPanelProps) {
         method: 'DELETE',
       });
       onAvatarChange(res.avatar);
+      updateUser({ avatar: res.avatar });
       setMessage('Profile picture removed.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not remove photo.');

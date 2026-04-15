@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import type { MenuItem } from '@/lib/wp';
+import { normalizeMenuUrl as normalizeUrl } from './normalizeMenuUrl';
 
 interface MobileNavProps {
   items: MenuItem[];
@@ -19,21 +20,6 @@ const BROWSE_LINKS = [
   { href: '/events', label: 'Events' },
   { href: '/help', label: 'Help & support' },
 ];
-
-function normalizeUrl(url: string): string {
-  const wpUrl = process.env.NEXT_PUBLIC_WP_URL;
-  if (!wpUrl || !url) return url || '/';
-  try {
-    const parsed = new URL(url);
-    const wp = new URL(wpUrl);
-    if (parsed.hostname === wp.hostname) {
-      return parsed.pathname + parsed.search + parsed.hash;
-    }
-  } catch {
-    // non-URL strings fall through
-  }
-  return url;
-}
 
 export function MobileNav({ items }: MobileNavProps) {
   const [open, setOpen] = useState(false);

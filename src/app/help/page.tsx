@@ -299,7 +299,7 @@ function ContactCta() {
       <p className="text-xs font-semibold tracking-[0.22em] uppercase text-[color:var(--color-accent)]">
         Still stuck?
       </p>
-      <h2 className="mt-3 text-3xl md:text-4xl font-[family-name:var(--font-archivo)] font-extrabold tracking-tight">
+      <h2 className="mt-3 text-3xl md:text-4xl font-[family-name:var(--font-archivo)] font-extrabold tracking-tight !text-white">
         Talk to a real human.
       </h2>
       <p className="mt-3 max-w-xl mx-auto text-sm text-white/70">

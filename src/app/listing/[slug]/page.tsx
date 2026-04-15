@@ -6,6 +6,7 @@ import { fetchListing } from '@/lib/wp';
 import { Gallery } from '@/components/listings/Gallery';
 import { ListingCard } from '@/components/listings/ListingCard';
 import { ContactSellerForm } from '@/components/listings/ContactSellerForm';
+import { ViewCounter } from '@/components/listings/ViewCounter';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { breadcrumbSchema, listingProductSchema } from '@/lib/seo/schema';
@@ -152,6 +153,7 @@ export default async function ListingPage({ params }: ListingPageProps) {
               <span className="text-sm text-[color:var(--color-ink-subtle)]">
                 Posted {formatRelativeDate(listing.date)}
               </span>
+              <ViewCounter listingId={listing.id} initialCount={listing.view_count ?? 0} />
             </div>
           </header>
 

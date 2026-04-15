@@ -5,21 +5,7 @@ import type { MenuItem } from '@/lib/wp';
 import { BrowseMenu } from './BrowseMenu';
 import { HeaderAuth } from './HeaderAuth';
 import { MobileNav } from './MobileNav';
-
-function normalizeUrl(url: string): string {
-  const wpUrl = process.env.NEXT_PUBLIC_WP_URL;
-  if (!wpUrl || !url) return url || '/';
-  try {
-    const parsed = new URL(url);
-    const wp = new URL(wpUrl);
-    if (parsed.hostname === wp.hostname) {
-      return parsed.pathname + parsed.search + parsed.hash;
-    }
-  } catch {
-    // non-URL strings fall through
-  }
-  return url;
-}
+import { normalizeMenuUrl as normalizeUrl } from './normalizeMenuUrl';
 
 function NavList({ items }: { items: MenuItem[] }) {
   if (items.length === 0) return null;

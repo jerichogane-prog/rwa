@@ -23,6 +23,8 @@ interface AuthContextValue {
   verifyEmail(userId: number, hash: string): Promise<void>;
   resendVerification(username: string): Promise<void>;
   applyTokens(tokens: AuthTokens): void;
+  /** Merge fresh fields into the stored user record (e.g. after avatar upload). */
+  updateUser(patch: Partial<AuthUser>): void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -193,6 +195,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [persist],
   );
 
+  const updateUser = useCallback(
+    (patch: Partial<AuthUser>) => {
+      const current = readStorage();
+      if (!current) return;
+      const next: StoredAuth = { ...current, user: { ...current.user, ...patch } };
+      persist(next);
+    },
+    [persist],
+  );
+
   const logout = useCallback(async () => {
     const current = readStorage();
     persist(null);
@@ -252,8 +264,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       verifyEmail,
       resendVerification,
       applyTokens,
+      updateUser,
     }),
-    [state, loading, login, register, logout, authedFetch, verifyEmail, resendVerification, applyTokens],
+    [state, loading, login, register, logout, authedFetch, verifyEmail, resendVerification, applyTokens, updateUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

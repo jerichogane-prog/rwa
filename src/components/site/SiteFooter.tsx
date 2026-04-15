@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { fetchMenu, fetchMenuBySlug } from '@/lib/wp';
 import type { MenuItem } from '@/lib/wp';
 import { PostAdButton } from './PostAdButton';
+import { normalizeMenuUrl as normalizeUrl } from './normalizeMenuUrl';
 
 const FALLBACK_CATEGORIES: MenuItem[] = [
   { id: -101, label: 'Animals', url: '/listings?category=animals', target: '', classes: [], children: [] },
@@ -23,29 +24,6 @@ const FALLBACK_HELP: MenuItem[] = [
   { id: -203, label: 'Terms of Use', url: '/terms-of-use', target: '', classes: [], children: [] },
   { id: -204, label: 'Privacy Policy', url: '/privacy-policy', target: '', classes: [], children: [] },
 ];
-
-function normalizeUrl(url: string): string {
-  const wpUrl = process.env.NEXT_PUBLIC_WP_URL;
-  if (!url) return '/';
-  // Convert category WP URLs (rwa.local/category/<slug>) into our /listings filter URLs.
-  try {
-    const parsed = new URL(url, wpUrl ?? 'http://placeholder.local');
-    const pathname = parsed.pathname.replace(/\/$/, '');
-    if (wpUrl) {
-      const wp = new URL(wpUrl);
-      if (parsed.hostname === wp.hostname) {
-        const categoryMatch = pathname.match(/^\/category\/(.+)$/);
-        if (categoryMatch) {
-          return `/listings?category=${encodeURIComponent(categoryMatch[1])}`;
-        }
-        return parsed.pathname + parsed.search + parsed.hash;
-      }
-    }
-    return url;
-  } catch {
-    return url || '/';
-  }
-}
 
 function dedupeAndNormalize(items: MenuItem[]): MenuItem[] {
   const seen = new Set<string>();
