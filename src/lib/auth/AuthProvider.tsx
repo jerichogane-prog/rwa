@@ -11,7 +11,7 @@ import type {
 } from './types';
 
 const STORAGE_KEY = 'rwa-auth';
-const API_BASE = `${process.env.NEXT_PUBLIC_WP_REST}/rwa/v1`;
+const API_BASE = '/api/wp/rwa/v1';
 
 interface AuthContextValue {
   user: AuthUser | null;

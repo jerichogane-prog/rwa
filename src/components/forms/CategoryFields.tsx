@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { TextField } from './TextField';
 import type { CategoryFieldDef } from '@/lib/wp';
 
-const REST_BASE = `${process.env.NEXT_PUBLIC_WP_REST}/rwa/v1`;
+const REST_BASE = '/api/wp/rwa/v1';
 
 interface CategoryFieldsProps {
   categorySlug: string;

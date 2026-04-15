@@ -10,7 +10,7 @@ import { useAuth } from '@/lib/auth/AuthProvider';
 import { flattenTaxonomy } from '@/lib/taxonomy';
 import type { TaxonomyNode } from '@/lib/wp';
 
-const REST_BASE = `${process.env.NEXT_PUBLIC_WP_REST}/rwa/v1`;
+const REST_BASE = '/api/wp/rwa/v1';
 
 interface SubmitResponse {
   success: boolean;

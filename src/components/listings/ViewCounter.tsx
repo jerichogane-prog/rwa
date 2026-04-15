@@ -7,7 +7,7 @@ interface ViewCounterProps {
   initialCount: number;
 }
 
-const REST = `${process.env.NEXT_PUBLIC_WP_REST}/rwa/v1`;
+const REST = '/api/wp/rwa/v1';
 
 export function ViewCounter({ listingId, initialCount }: ViewCounterProps) {
   const [count, setCount] = useState(initialCount);
