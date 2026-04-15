@@ -4,6 +4,7 @@ import { SearchForm } from '@/components/search/SearchForm';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { flattenTaxonomy } from '@/lib/taxonomy';
 import type { ActiveFilters } from './FilterBar';
+import { LocationDropdown } from './LocationDropdown';
 
 interface ListingsSidebarProps {
   categories: TaxonomyNode[];
@@ -58,15 +59,11 @@ export function ListingsSidebar({ categories, locations, activeFilters, minPrice
         maxVisible={countNodes(categories) > 20 ? 10 : undefined}
       />
 
-      <FilterSection
-        heading="Locations"
-        terms={locations}
+      <LocationDropdown
+        states={locations}
         activeSlug={activeFilters.location}
-        paramName="location"
         baseParams={baseParams}
-        keepKey="category"
-        keepValue={activeFilters.category}
-        maxVisible={countNodes(locations) > 20 ? 10 : undefined}
+        keepCategory={activeFilters.category}
       />
 
       <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border)] bg-[color:var(--color-surface-raised)] p-5">

@@ -4,7 +4,6 @@ import { fetchCategories, fetchListings, fetchLocations } from '@/lib/wp';
 import { ListingGrid } from '@/components/listings/ListingGrid';
 import { Pagination } from '@/components/listings/Pagination';
 import { ListingsSidebar } from '@/components/listings/ListingsSidebar';
-import { StateBar } from '@/components/listings/StateBar';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { breadcrumbSchema, itemListSchema } from '@/lib/seo/schema';
@@ -93,17 +92,6 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
   if (featured) query.set('featured', '1');
   const baseHref = query.toString() ? `/listings?${query.toString()}` : '/listings';
 
-  // The locations endpoint already returns states at the top level with cities
-  // nested as children, so the array is the state list as-is.
-  const states = locations;
-  const stateBarParams: Record<string, string | undefined> = {
-    search,
-    category,
-    min_price: minPrice !== undefined ? String(minPrice) : undefined,
-    max_price: maxPrice !== undefined ? String(maxPrice) : undefined,
-    featured: featured ? '1' : undefined,
-  };
-
   return (
     <div className="container-page pt-10 md:pt-14 pb-16">
       <JsonLd
@@ -152,11 +140,6 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
         />
 
         <div className="min-w-0">
-          <StateBar
-            states={states}
-            activeSlug={explicitLocation}
-            baseParams={stateBarParams}
-          />
           <AdSlot slot="listings-banner" variant="banner" className="mb-8" />
           <ListingGrid listings={items} />
           <Pagination currentPage={page} totalPages={totalPages} baseHref={baseHref} />
