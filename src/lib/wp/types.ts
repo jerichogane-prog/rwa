@@ -48,6 +48,22 @@ export interface CustomField {
   key: string;
   type: string;
   value: string | number | boolean | string[];
+  /** CL Pro "Listing details" group name when the plugin exposes grouped fields. */
+  group?: string;
+  /** Optional display order hint from the plugin. */
+  order?: number;
+}
+
+/** Custom field definition returned by the plugin for a given category. Used
+ *  to render dynamic fields on the post-ad form (e.g., Cars → make, model). */
+export interface CategoryFieldDef {
+  key: string;
+  label: string;
+  type: 'text' | 'number' | 'select' | 'checkbox' | 'textarea' | string;
+  required?: boolean;
+  options?: { value: string; label: string }[];
+  placeholder?: string;
+  group?: string;
 }
 
 export interface Seller {
@@ -94,6 +110,8 @@ export interface ListingDetail extends ListingSummary {
   contact?: ContactInfo;
   related: ListingSummary[];
   yoast: YoastMeta | null;
+  /** ISO timestamp when the listing expires, when the CL Pro plugin exposes it. */
+  expires_at?: string | null;
 }
 
 export interface TaxonomyNode {

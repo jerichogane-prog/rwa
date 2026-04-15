@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { fetchListing } from '@/lib/wp';
+import type { ListingDetail } from '@/lib/wp';
 import { Gallery } from '@/components/listings/Gallery';
 import { ListingCard } from '@/components/listings/ListingCard';
 import { ContactSellerForm } from '@/components/listings/ContactSellerForm';
@@ -156,6 +157,11 @@ export default async function ListingPage({ params }: ListingPageProps) {
               <span className="text-sm text-[color:var(--color-ink-subtle)]">
                 Posted {formatRelativeDate(listing.date)}
               </span>
+              {listing.expires_at && (
+                <span className="text-sm text-[color:var(--color-ink-subtle)]">
+                  · Expires {new Date(listing.expires_at).toLocaleDateString()}
+                </span>
+              )}
               <ViewCounter listingId={listing.id} initialCount={listing.view_count ?? 0} />
             </div>
           </header>
@@ -168,22 +174,31 @@ export default async function ListingPage({ params }: ListingPageProps) {
           )}
 
           {listing.custom_fields.length > 0 && (
-            <section className="mt-10">
-              <h2 className="section-title" style={{ fontSize: '1.5rem' }}>Details</h2>
-              <dl className="mt-4 grid gap-x-6 gap-y-3 sm:grid-cols-2 rounded-[var(--radius-lg)] border border-[color:var(--color-border)] bg-[color:var(--color-surface-raised)] p-5">
-                {listing.custom_fields.map((field) => (
-                  <div key={field.key} className="flex items-baseline justify-between gap-3 border-b border-[color:var(--color-border)]/50 pb-2 last:border-0 last:pb-0">
-                    <dt className="text-xs font-semibold tracking-wider uppercase text-[color:var(--color-ink-subtle)]">
-                      {decodeEntities(field.label)}
-                    </dt>
-                    <dd className="text-sm text-[color:var(--color-ink)] font-medium text-right">
-                      {Array.isArray(field.value)
-                        ? field.value.map((v) => decodeEntities(String(v))).join(', ')
-                        : decodeEntities(String(field.value))}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
+            <section className="mt-10 space-y-6">
+              {groupCustomFields(listing.custom_fields).map((group) => (
+                <div key={group.name}>
+                  <h2 className="section-title" style={{ fontSize: '1.5rem' }}>
+                    {group.name}
+                  </h2>
+                  <dl className="mt-4 grid gap-x-6 gap-y-3 sm:grid-cols-2 rounded-[var(--radius-lg)] border border-[color:var(--color-border)] bg-[color:var(--color-surface-raised)] p-5">
+                    {group.fields.map((field) => (
+                      <div
+                        key={field.key}
+                        className="flex items-baseline justify-between gap-3 border-b border-[color:var(--color-border)]/50 pb-2 last:border-0 last:pb-0"
+                      >
+                        <dt className="text-xs font-semibold tracking-wider uppercase text-[color:var(--color-ink-subtle)]">
+                          {decodeEntities(field.label)}
+                        </dt>
+                        <dd className="text-sm text-[color:var(--color-ink)] font-medium text-right">
+                          {Array.isArray(field.value)
+                            ? field.value.map((v) => decodeEntities(String(v))).join(', ')
+                            : decodeEntities(String(field.value))}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              ))}
             </section>
           )}
 
@@ -309,4 +324,31 @@ export default async function ListingPage({ params }: ListingPageProps) {
       )}
     </div>
   );
+}
+
+interface FieldGroup {
+  name: string;
+  fields: ListingDetail['custom_fields'];
+}
+
+/** Group CL Pro custom fields by their `group` attribute so each "Listing
+ *  details" section from the plugin renders as its own card on the detail
+ *  page. Falls back to a single "Details" section for legacy flat payloads. */
+function groupCustomFields(fields: ListingDetail['custom_fields']): FieldGroup[] {
+  const order: string[] = [];
+  const buckets = new Map<string, ListingDetail['custom_fields']>();
+  for (const field of fields) {
+    const name = field.group?.trim() || 'Details';
+    if (!buckets.has(name)) {
+      buckets.set(name, []);
+      order.push(name);
+    }
+    buckets.get(name)!.push(field);
+  }
+  return order.map((name) => ({
+    name,
+    fields: [...buckets.get(name)!].sort(
+      (a, b) => (a.order ?? 0) - (b.order ?? 0),
+    ),
+  }));
 }

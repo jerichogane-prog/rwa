@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { TextField } from '@/components/forms/TextField';
 import { ImageUploader, type PendingImage } from '@/components/forms/ImageUploader';
+import { CategoryFields } from '@/components/forms/CategoryFields';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { flattenTaxonomy } from '@/lib/taxonomy';
 import type { TaxonomyNode } from '@/lib/wp';
@@ -28,6 +29,7 @@ export default function PostAdPage() {
   const [result, setResult] = useState<SubmitResponse | null>(null);
   const [stage, setStage] = useState<'idle' | 'creating' | 'uploading'>('idle');
   const [stateSlug, setStateSlug] = useState<string>('');
+  const [categorySlug, setCategorySlug] = useState<string>('');
 
   useEffect(() => {
     if (!loading && !user) {
@@ -55,6 +57,13 @@ export default function PostAdPage() {
     const stateValue = String(data.get('state') ?? '').trim();
     const citySlug = String(data.get('city_slug') ?? '').trim();
     const cityText = String(data.get('city') ?? '').trim();
+    const dynamicFields: Record<string, string> = {};
+    for (const [key, value] of data.entries()) {
+      const match = key.match(/^fields\[(.+)\]$/);
+      if (match && typeof value === 'string' && value !== '') {
+        dynamicFields[match[1]] = value;
+      }
+    }
     const payload = {
       title: String(data.get('title') ?? '').trim(),
       description: String(data.get('description') ?? '').trim(),
@@ -69,6 +78,7 @@ export default function PostAdPage() {
       zipcode: String(data.get('zipcode') ?? '').trim(),
       phone: String(data.get('phone') ?? '').trim(),
       ad_type: String(data.get('ad_type') ?? 'sell'),
+      fields: dynamicFields,
     };
     setError(null);
     setStage('creating');
@@ -188,7 +198,15 @@ export default function PostAdPage() {
           <TextField label="Phone (optional)" name="phone" type="tel" autoComplete="tel" />
         </div>
 
-        <SelectField label="Category" name="category" options={categoryOptions} />
+        <SelectField
+          label="Category"
+          name="category"
+          options={categoryOptions}
+          value={categorySlug}
+          onChange={setCategorySlug}
+        />
+
+        <CategoryFields categorySlug={categorySlug} />
 
         <fieldset className="space-y-4">
           <legend className="block text-xs font-semibold tracking-wider uppercase text-[color:var(--color-ink-subtle)]">
@@ -298,9 +316,16 @@ function AdTypePicker() {
 
 interface SelectOption { value: string; label: string; depth?: number }
 
-interface SelectFieldProps { label: string; name: string; options: SelectOption[] }
+interface SelectFieldProps {
+  label: string;
+  name: string;
+  options: SelectOption[];
+  value?: string;
+  onChange?: (value: string) => void;
+}
 
-function SelectField({ label, name, options }: SelectFieldProps) {
+function SelectField({ label, name, options, value, onChange }: SelectFieldProps) {
+  const controlled = value !== undefined;
   return (
     <div>
       <label
@@ -312,6 +337,9 @@ function SelectField({ label, name, options }: SelectFieldProps) {
       <select
         id={`field-${name}`}
         name={name}
+        value={controlled ? value : undefined}
+        defaultValue={controlled ? undefined : ''}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
         className="w-full h-11 rounded-[var(--radius-md)] bg-[color:var(--color-surface-sunken)] px-3 text-sm focus:ring-2 focus:ring-[color:var(--color-ruby)] focus:outline-none"
       >
         <option value="">Select…</option>

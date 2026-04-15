@@ -32,13 +32,23 @@ export default function RegisterPage() {
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
+    const password = String(data.get('password') ?? '');
+    const confirmPassword = String(data.get('password_confirm') ?? '');
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
       const result = await register({
         username: String(data.get('username') ?? '').trim(),
         email: String(data.get('email') ?? '').trim(),
-        password: String(data.get('password') ?? ''),
+        password,
         name: String(data.get('name') ?? '').trim() || undefined,
         avatar: avatar ?? null,
       });
@@ -110,6 +120,7 @@ export default function RegisterPage() {
         <TextField label="Username" name="username" required autoComplete="username" />
         <TextField label="Email" name="email" type="email" required autoComplete="email" />
         <TextField label="Password" name="password" type="password" required autoComplete="new-password" hint="At least 8 characters." />
+        <TextField label="Confirm password" name="password_confirm" type="password" required autoComplete="new-password" />
 
         {error && (
           <p role="alert" className="text-sm text-[color:var(--color-ruby-deep)]">
