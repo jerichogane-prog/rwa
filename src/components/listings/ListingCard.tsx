@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { ListingSummary } from '@/lib/wp';
 import { decodeEntities, formatPrice, formatRelativeDate } from '@/lib/format';
+import { FavoriteButton } from './FavoriteButton';
 
 interface ListingCardProps {
   listing: ListingSummary;
@@ -46,6 +47,7 @@ export function ListingCard({ listing, variant = 'default', priority = false }: 
             <span aria-hidden>★</span> Featured
           </span>
         )}
+        <FavoriteButton listingId={listing.id} />
       </div>
 
       <div className="flex-1 flex flex-col gap-3 p-5">

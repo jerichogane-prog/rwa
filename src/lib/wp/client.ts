@@ -106,6 +106,18 @@ export async function fetchMenu(location: string): Promise<MenuItem[]> {
   }
 }
 
+export async function fetchMenuBySlug(slug: string): Promise<MenuItem[]> {
+  try {
+    const { data } = await wpFetch<MenuItem[]>(`/menu-by-slug/${encodeURIComponent(slug)}`, {
+      revalidate: 300,
+      tags: ['menus', `menu-slug:${slug}`],
+    });
+    return data;
+  } catch {
+    return [];
+  }
+}
+
 export async function fetchTaxonomyTerm(
   taxonomy: 'categories' | 'locations' | 'tags',
   slug: string,
