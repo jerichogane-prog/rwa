@@ -38,6 +38,8 @@ function ListingsPanel() {
   const [filter, setFilter] = useState<Filter>('all');
   const [renewingId, setRenewingId] = useState<number | null>(null);
   const [renewError, setRenewError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [confirmId, setConfirmId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -77,6 +79,23 @@ function ListingsPanel() {
         setRenewError(err instanceof Error ? err.message : 'Could not renew listing.');
       } finally {
         setRenewingId(null);
+      }
+    },
+    [authedFetch],
+  );
+
+  const remove = useCallback(
+    async (id: number) => {
+      setRenewError(null);
+      setDeletingId(id);
+      try {
+        await authedFetch(`/my/listings/${id}`, { method: 'DELETE' });
+        setListings((prev) => (prev ? prev.filter((l) => l.id !== id) : prev));
+        setConfirmId(null);
+      } catch (err) {
+        setRenewError(err instanceof Error ? err.message : 'Could not delete listing.');
+      } finally {
+        setDeletingId(null);
       }
     },
     [authedFetch],
@@ -131,15 +150,19 @@ function ListingsPanel() {
         <ul className="divide-y divide-[color:var(--color-border)]">
           {filtered.map((listing) => {
             const isExpired = listing.post_status === 'rtcl-expired';
-            const href =
+            const viewHref =
               listing.post_status === 'publish'
                 ? `/listing/${listing.slug}`
                 : `/listing/preview/${listing.id}`;
+            const confirming = confirmId === listing.id;
             return (
-              <li key={listing.id} className="flex items-center gap-4 py-3">
+              <li
+                key={listing.id}
+                className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 py-3"
+              >
                 <div className="flex-1 min-w-0">
                   <Link
-                    href={href}
+                    href={viewHref}
                     className="font-semibold hover:text-[color:var(--color-ruby)] line-clamp-1"
                   >
                     {listing.title}
@@ -147,22 +170,61 @@ function ListingsPanel() {
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[color:var(--color-ink-subtle)]">
                     <StatusBadge status={listing.post_status} />
                     <span>{new Date(listing.date).toLocaleDateString()}</span>
+                    {listing.price > 0 && (
+                      <span className="font-semibold text-[color:var(--color-ruby)]">
+                        ${listing.price.toLocaleString()}
+                      </span>
+                    )}
                   </div>
                 </div>
-                {isExpired && (
-                  <button
-                    type="button"
-                    onClick={() => renew(listing.id)}
-                    disabled={renewingId === listing.id}
-                    className="inline-flex items-center rounded-full border border-[color:var(--color-ruby)] px-3 py-1 text-xs font-semibold text-[color:var(--color-ruby)] hover:bg-[color:var(--color-ruby-soft)] disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    {renewingId === listing.id ? 'Renewing…' : 'Renew'}
-                  </button>
-                )}
-                {listing.price > 0 && (
-                  <span className="text-sm font-semibold text-[color:var(--color-ruby)]">
-                    ${listing.price.toLocaleString()}
-                  </span>
+                {confirming ? (
+                  <div className="flex items-center gap-2 flex-wrap justify-end">
+                    <span className="text-xs text-[color:var(--color-ink-muted)]">
+                      Delete permanently?
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => remove(listing.id)}
+                      disabled={deletingId === listing.id}
+                      className="inline-flex items-center rounded-full bg-[color:var(--color-ruby)] px-3 py-1 text-xs font-semibold text-white hover:bg-[color:var(--color-ruby-deep)] disabled:opacity-60"
+                    >
+                      {deletingId === listing.id ? 'Deleting…' : 'Yes, delete'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmId(null)}
+                      disabled={deletingId === listing.id}
+                      className="inline-flex items-center rounded-full border border-[color:var(--color-border-strong)] px-3 py-1 text-xs font-semibold hover:border-[color:var(--color-ink)]"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 flex-wrap sm:justify-end">
+                    {isExpired && (
+                      <button
+                        type="button"
+                        onClick={() => renew(listing.id)}
+                        disabled={renewingId === listing.id}
+                        className="inline-flex items-center rounded-full border border-[color:var(--color-ruby)] px-3 py-1 text-xs font-semibold text-[color:var(--color-ruby)] hover:bg-[color:var(--color-ruby-soft)] disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        {renewingId === listing.id ? 'Renewing…' : 'Renew'}
+                      </button>
+                    )}
+                    <Link
+                      href={`/account/listings/${listing.id}/edit`}
+                      className="inline-flex items-center rounded-full border border-[color:var(--color-border-strong)] px-3 py-1 text-xs font-semibold hover:border-[color:var(--color-ink)]"
+                    >
+                      Edit
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmId(listing.id)}
+                      className="inline-flex items-center rounded-full border border-[color:var(--color-border-strong)] px-3 py-1 text-xs font-semibold text-[color:var(--color-ink-muted)] hover:border-[color:var(--color-ruby)] hover:text-[color:var(--color-ruby)]"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 )}
               </li>
             );
