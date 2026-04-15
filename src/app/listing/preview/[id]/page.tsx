@@ -7,8 +7,23 @@ import { useAuth } from '@/lib/auth/AuthProvider';
 import type { ListingSummary } from '@/lib/wp';
 import { decodeEntities, formatPrice, formatRelativeDate } from '@/lib/format';
 
-type Status = 'publish' | 'draft' | 'pending';
+type Status = 'publish' | 'draft' | 'pending' | 'rtcl-expired';
 type MyListing = ListingSummary & { post_status: Status };
+
+const STATUS_COPY: Record<Exclude<Status, 'publish'>, { label: string; copy: string }> = {
+  pending: {
+    label: 'Pending review',
+    copy: 'This ad is waiting for admin review. Only you can see it until it is approved.',
+  },
+  draft: {
+    label: 'Draft',
+    copy: 'This ad is saved as a draft and is not visible to anyone else yet.',
+  },
+  'rtcl-expired': {
+    label: 'Expired',
+    copy: 'This ad has expired and is no longer visible to buyers. Renew it from My Listings to bring it back.',
+  },
+};
 
 interface PreviewPageProps {
   params: Promise<{ id: string }>;
@@ -86,11 +101,9 @@ export default function ListingPreviewPage({ params }: PreviewPageProps) {
   const excerpt = decodeEntities(listing.excerpt);
   const primaryCategory = listing.categories[0];
   const primaryLocation = listing.locations[0];
-  const statusLabel = listing.post_status === 'pending' ? 'Pending review' : 'Draft';
-  const statusCopy =
-    listing.post_status === 'pending'
-      ? 'This ad is waiting for admin review. Only you can see it until it is approved.'
-      : 'This ad is saved as a draft and is not visible to anyone else yet.';
+  const copy = listing.post_status === 'publish' ? null : STATUS_COPY[listing.post_status];
+  const statusLabel = copy?.label ?? 'Live';
+  const statusCopy = copy?.copy ?? '';
 
   return (
     <div className="container-page pt-8 pb-16">

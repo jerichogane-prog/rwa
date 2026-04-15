@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AccountShell, AccountSection } from '@/components/account/AccountShell';
 import { PostAdButton } from '@/components/site/PostAdButton';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import type { ListingSummary } from '@/lib/wp';
 
-type Status = 'publish' | 'draft' | 'pending';
+type Status = 'publish' | 'draft' | 'pending' | 'rtcl-expired';
 type MyListing = ListingSummary & { post_status: Status };
 type Filter = 'all' | Status;
 
@@ -16,6 +16,7 @@ const TABS: { value: Filter; label: string }[] = [
   { value: 'publish', label: 'Live' },
   { value: 'pending', label: 'Pending review' },
   { value: 'draft', label: 'Drafts' },
+  { value: 'rtcl-expired', label: 'Expired' },
 ];
 
 export default function MyListingsPage() {
@@ -35,6 +36,8 @@ function ListingsPanel() {
   const [listings, setListings] = useState<MyListing[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
+  const [renewingId, setRenewingId] = useState<number | null>(null);
+  const [renewError, setRenewError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -44,7 +47,13 @@ function ListingsPanel() {
   }, [user, authedFetch]);
 
   const counts = useMemo(() => {
-    const initial: Record<Filter, number> = { all: 0, publish: 0, pending: 0, draft: 0 };
+    const initial: Record<Filter, number> = {
+      all: 0,
+      publish: 0,
+      pending: 0,
+      draft: 0,
+      'rtcl-expired': 0,
+    };
     if (!listings) return initial;
     initial.all = listings.length;
     for (const l of listings) initial[l.post_status]++;
@@ -55,6 +64,23 @@ function ListingsPanel() {
     if (!listings) return null;
     return filter === 'all' ? listings : listings.filter((l) => l.post_status === filter);
   }, [listings, filter]);
+
+  const renew = useCallback(
+    async (id: number) => {
+      setRenewError(null);
+      setRenewingId(id);
+      try {
+        await authedFetch(`/my/listings/${id}/renew`, { method: 'POST' });
+        const fresh = await authedFetch<MyListing[]>('/my/listings');
+        setListings(fresh);
+      } catch (err) {
+        setRenewError(err instanceof Error ? err.message : 'Could not renew listing.');
+      } finally {
+        setRenewingId(null);
+      }
+    },
+    [authedFetch],
+  );
 
   return (
     <AccountSection title="Your ads" description="Pending ads are not visible to buyers until an admin approves them.">
@@ -84,6 +110,11 @@ function ListingsPanel() {
           {error}
         </p>
       )}
+      {renewError && (
+        <p role="alert" className="text-sm text-[color:var(--color-ruby-deep)] mb-3">
+          {renewError}
+        </p>
+      )}
 
       {!filtered ? (
         <ul className="space-y-2">
@@ -98,31 +129,44 @@ function ListingsPanel() {
         <p className="text-sm text-[color:var(--color-ink-muted)]">No listings in this view.</p>
       ) : (
         <ul className="divide-y divide-[color:var(--color-border)]">
-          {filtered.map((listing) => (
-            <li key={listing.id} className="flex items-center gap-4 py-3">
-              <div className="flex-1 min-w-0">
-                <Link
-                  href={
-                    listing.post_status === 'publish'
-                      ? `/listing/${listing.slug}`
-                      : `/listing/preview/${listing.id}`
-                  }
-                  className="font-semibold hover:text-[color:var(--color-ruby)] line-clamp-1"
-                >
-                  {listing.title}
-                </Link>
-                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[color:var(--color-ink-subtle)]">
-                  <StatusBadge status={listing.post_status} />
-                  <span>{new Date(listing.date).toLocaleDateString()}</span>
+          {filtered.map((listing) => {
+            const isExpired = listing.post_status === 'rtcl-expired';
+            const href =
+              listing.post_status === 'publish'
+                ? `/listing/${listing.slug}`
+                : `/listing/preview/${listing.id}`;
+            return (
+              <li key={listing.id} className="flex items-center gap-4 py-3">
+                <div className="flex-1 min-w-0">
+                  <Link
+                    href={href}
+                    className="font-semibold hover:text-[color:var(--color-ruby)] line-clamp-1"
+                  >
+                    {listing.title}
+                  </Link>
+                  <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[color:var(--color-ink-subtle)]">
+                    <StatusBadge status={listing.post_status} />
+                    <span>{new Date(listing.date).toLocaleDateString()}</span>
+                  </div>
                 </div>
-              </div>
-              {listing.price > 0 && (
-                <span className="text-sm font-semibold text-[color:var(--color-ruby)]">
-                  ${listing.price.toLocaleString()}
-                </span>
-              )}
-            </li>
-          ))}
+                {isExpired && (
+                  <button
+                    type="button"
+                    onClick={() => renew(listing.id)}
+                    disabled={renewingId === listing.id}
+                    className="inline-flex items-center rounded-full border border-[color:var(--color-ruby)] px-3 py-1 text-xs font-semibold text-[color:var(--color-ruby)] hover:bg-[color:var(--color-ruby-soft)] disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {renewingId === listing.id ? 'Renewing…' : 'Renew'}
+                  </button>
+                )}
+                {listing.price > 0 && (
+                  <span className="text-sm font-semibold text-[color:var(--color-ruby)]">
+                    ${listing.price.toLocaleString()}
+                  </span>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
     </AccountSection>
@@ -134,6 +178,7 @@ function StatusBadge({ status }: { status: Status }) {
     publish: { label: 'Live', cls: 'bg-[color:var(--color-ruby-soft)] text-[color:var(--color-ruby-deep)]' },
     pending: { label: 'Pending review', cls: 'bg-[oklch(95%_0.06_75)] text-[oklch(38%_0.12_60)]' },
     draft: { label: 'Draft', cls: 'bg-[color:var(--color-surface-sunken)] text-[color:var(--color-ink-muted)]' },
+    'rtcl-expired': { label: 'Expired', cls: 'bg-[oklch(94%_0.03_25)] text-[oklch(42%_0.13_25)]' },
   };
   const c = config[status];
   return (
