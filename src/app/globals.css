@@ -144,7 +144,7 @@ textarea:focus-visible {
 .hero-display {
   font-family: var(--font-archivo), var(--font-inter), system-ui, sans-serif;
   font-weight: 900;
-  font-size: 4.25rem;
+  font-size: clamp(2.5rem, 1.6rem + 4.2vw, 4.25rem);
   line-height: 0.95;
   letter-spacing: -0.035em;
 }

@@ -103,7 +103,7 @@ function ListingsPanel() {
 
   return (
     <AccountSection title="Your ads" description="Pending ads are not visible to buyers until an admin approves them.">
-      <div className="-mx-2 px-2 mb-5 flex flex-wrap gap-1 border-b border-[color:var(--color-border)] pb-3">
+      <div className="-mx-4 sm:-mx-2 px-4 sm:px-2 mb-5 flex gap-1 overflow-x-auto sm:flex-wrap border-b border-[color:var(--color-border)] pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {TABS.map((tab) => {
           const active = filter === tab.value;
           return (
@@ -111,7 +111,7 @@ function ListingsPanel() {
               key={tab.value}
               type="button"
               onClick={() => setFilter(tab.value)}
-              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              className={`inline-flex shrink-0 items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-colors ${
                 active
                   ? 'bg-[color:var(--color-ruby-soft)] text-[color:var(--color-ruby-deep)]'
                   : 'text-[color:var(--color-ink-muted)] hover:bg-[color:var(--color-surface-sunken)] hover:text-[color:var(--color-ink)]'

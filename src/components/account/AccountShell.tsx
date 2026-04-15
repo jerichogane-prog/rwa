@@ -33,7 +33,7 @@ export function AccountShell({ title, description, actions, children }: AccountS
   }
 
   return (
-    <div className="container-page pt-10 md:pt-14 pb-16">
+    <div className="container-page pt-6 md:pt-14 pb-16">
       <nav aria-label="Breadcrumb" className="text-xs text-[color:var(--color-ink-subtle)]">
         <Link href="/" className="hover:text-[color:var(--color-ink)]">
           Home
@@ -44,7 +44,7 @@ export function AccountShell({ title, description, actions, children }: AccountS
         </Link>
       </nav>
 
-      <header className="mt-4 mb-8 flex flex-wrap items-center gap-4">
+      <header className="mt-4 mb-6 md:mb-8 flex flex-wrap items-start gap-4">
         {user.avatar && (
           <Image
             src={user.avatar}
@@ -52,28 +52,28 @@ export function AccountShell({ title, description, actions, children }: AccountS
             width={56}
             height={56}
             unoptimized
-            className="w-14 h-14 rounded-full"
+            className="w-12 h-12 md:w-14 md:h-14 rounded-full flex-shrink-0"
           />
         )}
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-ink-subtle)]">
+          <p className="text-[11px] md:text-xs font-semibold tracking-[0.18em] uppercase text-[color:var(--color-ink-subtle)] truncate">
             Signed in as {user.display_name}
           </p>
-          <h1 className="mt-1 text-2xl md:text-3xl font-[family-name:var(--font-archivo)] font-extrabold tracking-tight">
+          <h1 className="mt-1 text-xl sm:text-2xl md:text-3xl font-[family-name:var(--font-archivo)] font-extrabold tracking-tight">
             {title}
           </h1>
           {description && (
             <p className="mt-1 text-sm text-[color:var(--color-ink-muted)] max-w-xl">{description}</p>
           )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3 w-full sm:w-auto justify-end">
           {actions}
           <button
             type="button"
             onClick={() => {
               void logout().then(() => router.push('/'));
             }}
-            className="text-sm text-[color:var(--color-ink-muted)] hover:text-[color:var(--color-ruby)]"
+            className="text-sm text-[color:var(--color-ink-muted)] hover:text-[color:var(--color-ruby)] whitespace-nowrap"
           >
             Log out
           </button>
@@ -98,7 +98,7 @@ export function AccountSection({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-[var(--radius-lg)] border border-[color:var(--color-border)] bg-[color:var(--color-surface-raised)] p-6">
+    <section className="rounded-[var(--radius-lg)] border border-[color:var(--color-border)] bg-[color:var(--color-surface-raised)] p-4 sm:p-6">
       <header className="mb-5">
         <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
         {description && (

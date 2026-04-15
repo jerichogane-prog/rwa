@@ -103,17 +103,20 @@ export default async function ListingPage({ params }: ListingPageProps) {
     <div className="container-page pt-8 pb-16">
       <JsonLd data={listingProductSchema(listing)} id="product-ld" />
       <JsonLd data={breadcrumbSchema(crumbs)} id="breadcrumb-ld" />
-      <nav aria-label="Breadcrumb" className="text-xs text-[color:var(--color-ink-subtle)]">
+      <nav
+        aria-label="Breadcrumb"
+        className="text-xs text-[color:var(--color-ink-subtle)] flex items-center gap-1.5 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
         <Link href="/" className="hover:text-[color:var(--color-ink)]">
           Home
         </Link>
-        <span className="mx-1.5" aria-hidden>›</span>
+        <span aria-hidden>›</span>
         <Link href="/listings" className="hover:text-[color:var(--color-ink)]">
           Listings
         </Link>
         {primaryCategory && (
           <>
-            <span className="mx-1.5" aria-hidden>›</span>
+            <span aria-hidden>›</span>
             <Link
               href={`/listings?category=${encodeURIComponent(primaryCategory.slug)}`}
               className="hover:text-[color:var(--color-ink)]"
@@ -122,8 +125,8 @@ export default async function ListingPage({ params }: ListingPageProps) {
             </Link>
           </>
         )}
-        <span className="mx-1.5" aria-hidden>›</span>
-        <span className="text-[color:var(--color-ink)] line-clamp-1 inline-block max-w-[20ch] align-bottom">
+        <span aria-hidden>›</span>
+        <span className="text-[color:var(--color-ink)] truncate max-w-[18ch] sm:max-w-[30ch]">
           {title}
         </span>
       </nav>
