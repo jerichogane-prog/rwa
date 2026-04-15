@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { fetchListings } from '@/lib/wp';
+import type { ListingsQuery } from '@/lib/wp';
 import { ListingGrid } from '@/components/listings/ListingGrid';
 import { Pagination } from '@/components/listings/Pagination';
 import { AdSlot } from '@/components/ads/AdSlot';
+import { SortMenu, DEFAULT_SORT, resolveSort } from '@/components/listings/SortMenu';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { breadcrumbSchema, itemListSchema } from '@/lib/seo/schema';
 
@@ -32,11 +34,14 @@ function first(value: string | string[] | undefined): string | undefined {
 export default async function EventsPage({ searchParams }: EventsPageProps) {
   const params = await searchParams;
   const page = Number(first(params.page) ?? 1) || 1;
+  const sort = resolveSort(first(params.sort) ?? DEFAULT_SORT);
 
   const { items, total, totalPages } = await fetchListings({
     page,
     per_page: 18,
     type: 'event',
+    orderby: sort.orderby as ListingsQuery['orderby'],
+    order: sort.order,
   }).catch(() => ({ items: [], total: 0, totalPages: 0 }));
 
   return (
@@ -81,6 +86,9 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
         </p>
       </header>
 
+      <div className="mb-4 flex justify-end">
+        <SortMenu active={sort.value} pathname="/events" baseParams={{}} />
+      </div>
       <AdSlot slot="listings-banner" variant="banner" className="mb-8" />
       <ListingGrid
         listings={items}

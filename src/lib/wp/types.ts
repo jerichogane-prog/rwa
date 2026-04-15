@@ -120,6 +120,8 @@ export interface MenuLocation {
   slug: string | null;
 }
 
+export type ListingsOrderBy = 'date' | 'title' | 'rand' | 'menu_order' | 'views' | 'price';
+
 export interface ListingsQuery {
   page?: number;
   per_page?: number;
@@ -131,7 +133,7 @@ export interface ListingsQuery {
   min_price?: number;
   max_price?: number;
   featured?: boolean;
-  orderby?: 'date' | 'title' | 'rand' | 'menu_order';
+  orderby?: ListingsOrderBy;
   order?: 'ASC' | 'DESC';
 }
 

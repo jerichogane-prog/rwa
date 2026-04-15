@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/AuthProvider';
+import { useUnreadMessages } from '@/lib/auth/useUnreadMessages';
 import { PostAdButton } from './PostAdButton';
 
 export function HeaderAuth() {
@@ -59,6 +60,7 @@ function UserMenu({ displayName, email, avatar, onLogout }: UserMenuProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { count: unread } = useUnreadMessages();
 
   useEffect(() => setOpen(false), [pathname]);
 
@@ -99,7 +101,17 @@ function UserMenu({ displayName, email, avatar, onLogout }: UserMenuProps) {
             : 'border-[color:var(--color-border)] text-[color:var(--color-ink-muted)] hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-ink)]'
         }`}
       >
-        <Avatar avatar={avatar} initials={initials} />
+        <div className="relative">
+          <Avatar avatar={avatar} initials={initials} />
+          {unread > 0 && (
+            <span
+              aria-label={`${unread} unread message${unread === 1 ? '' : 's'}`}
+              className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-[color:var(--color-ruby)] text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-[color:var(--color-surface-raised)]"
+            >
+              {unread > 9 ? '9+' : unread}
+            </span>
+          )}
+        </div>
         <span className="hidden lg:inline text-sm font-semibold max-w-[10ch] truncate">
           {displayName}
         </span>
@@ -117,20 +129,28 @@ function UserMenu({ displayName, email, avatar, onLogout }: UserMenuProps) {
             <p className="text-xs text-[color:var(--color-ink-subtle)] truncate">{email}</p>
           </div>
           <ul className="py-1.5">
-            {ACCOUNT_LINKS.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  role="menuitem"
-                  className="flex items-center gap-3 px-4 py-2 text-sm text-[color:var(--color-ink)] hover:bg-[color:var(--color-surface-sunken)]"
-                >
-                  <span className="text-base" aria-hidden>
-                    {item.icon}
-                  </span>
-                  {item.label}
-                </Link>
-              </li>
-            ))}
+            {ACCOUNT_LINKS.map((item) => {
+              const isMessages = item.href === '/account/messages';
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    role="menuitem"
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-[color:var(--color-ink)] hover:bg-[color:var(--color-surface-sunken)]"
+                  >
+                    <span className="text-base" aria-hidden>
+                      {item.icon}
+                    </span>
+                    <span className="flex-1">{item.label}</span>
+                    {isMessages && unread > 0 && (
+                      <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[color:var(--color-ruby)] text-white text-[10px] font-bold">
+                        {unread > 99 ? '99+' : unread}
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
           <div className="border-t border-[color:var(--color-border)] py-1.5">
             <button

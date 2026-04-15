@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { fetchCategories, fetchListings, fetchLocations, AD_TYPE_LABELS } from '@/lib/wp';
-import type { AdType } from '@/lib/wp';
+import type { AdType, ListingsQuery } from '@/lib/wp';
 import { ListingGrid } from '@/components/listings/ListingGrid';
 import { Pagination } from '@/components/listings/Pagination';
 import { ListingsSidebar } from '@/components/listings/ListingsSidebar';
 import { AdSlot } from '@/components/ads/AdSlot';
+import { SortMenu, DEFAULT_SORT, resolveSort } from '@/components/listings/SortMenu';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { breadcrumbSchema, itemListSchema } from '@/lib/seo/schema';
 import type { ActiveFilters } from '@/components/listings/FilterBar';
@@ -94,6 +95,8 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
   const featured = toBool(first(params.featured));
   const minPrice = toNumber(first(params.min_price));
   const maxPrice = toNumber(first(params.max_price));
+  const sortValue = first(params.sort) ?? DEFAULT_SORT;
+  const sort = resolveSort(sortValue);
 
   // Default the location to Nevada (the home state) when no other state and no
   // free-text search is in play. Lets visitors land on local results without
@@ -112,6 +115,8 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
       featured,
       min_price: minPrice,
       max_price: maxPrice,
+      orderby: sort.orderby as ListingsQuery['orderby'],
+      order: sort.order,
     }).catch(() => ({ items: [], total: 0, totalPages: 0 })),
     fetchCategories().catch(() => []),
     fetchLocations().catch(() => []),
@@ -175,14 +180,29 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
             {activeFilters.search ? ` matching “${activeFilters.search}”` : ''} · {subheading}
           </p>
         </div>
-        {(activeFilters.search || activeFilters.category || activeFilters.location || activeFilters.featured || type) && (
-          <Link
-            href="/listings"
-            className="text-sm font-medium text-[color:var(--color-ruby)] hover:underline"
-          >
-            Clear all filters
-          </Link>
-        )}
+        <div className="flex flex-wrap items-center gap-4">
+          <SortMenu
+            active={sort.value}
+            pathname="/listings"
+            baseParams={{
+              search,
+              category,
+              location: explicitLocation,
+              type,
+              min_price: minPrice !== undefined ? String(minPrice) : undefined,
+              max_price: maxPrice !== undefined ? String(maxPrice) : undefined,
+              featured: featured ? '1' : undefined,
+            }}
+          />
+          {(activeFilters.search || activeFilters.category || activeFilters.location || activeFilters.featured || type) && (
+            <Link
+              href="/listings"
+              className="text-sm font-medium text-[color:var(--color-ruby)] hover:underline"
+            >
+              Clear all filters
+            </Link>
+          )}
+        </div>
       </header>
 
       <div className="grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">

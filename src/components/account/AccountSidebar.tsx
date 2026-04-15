@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useUnreadMessages } from '@/lib/auth/useUnreadMessages';
 
 interface NavItem {
   href: string;
@@ -57,6 +58,7 @@ const NAV: NavItem[] = [
 
 export function AccountSidebar() {
   const pathname = usePathname();
+  const { count: unread } = useUnreadMessages();
   return (
     <nav aria-label="Account navigation" className="lg:sticky lg:top-28 lg:self-start">
       <ul className="grid gap-1 lg:gap-0.5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 rounded-[var(--radius-lg)] border border-[color:var(--color-border)] bg-[color:var(--color-surface-raised)] p-2">
@@ -64,6 +66,8 @@ export function AccountSidebar() {
           const active = item.href === '/account'
             ? pathname === '/account'
             : pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const badge =
+            item.badge ?? (item.href === '/account/messages' && unread > 0 ? String(unread) : undefined);
           return (
             <li key={item.href}>
               <Link
@@ -88,9 +92,15 @@ export function AccountSidebar() {
                   {item.icon}
                 </svg>
                 <span className="truncate">{item.label}</span>
-                {item.badge && (
-                  <span className="ml-auto text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded-full bg-[color:var(--color-ruby)] text-white">
-                    {item.badge}
+                {badge && (
+                  <span
+                    className={`ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold tracking-wider ${
+                      active
+                        ? 'bg-[color:var(--color-ruby)] text-white'
+                        : 'bg-[color:var(--color-ruby)] text-white'
+                    }`}
+                  >
+                    {badge}
                   </span>
                 )}
               </Link>

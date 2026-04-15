@@ -1,9 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { AccountShell, AccountSection } from '@/components/account/AccountShell';
 import { useAuth } from '@/lib/auth/AuthProvider';
+import { useUnreadMessages } from '@/lib/auth/useUnreadMessages';
+
+interface Reply {
+  id: number;
+  date: string;
+  body: string;
+  email_delivered: boolean;
+}
 
 interface Message {
   id: number;
@@ -15,6 +23,7 @@ interface Message {
   read: boolean;
   email_delivered: boolean;
   listing: { id: number; title: string; slug: string } | null;
+  replies: Reply[];
 }
 
 export default function MessagesPage() {
@@ -27,6 +36,7 @@ export default function MessagesPage() {
 
 function MessagesPanel() {
   const { user, authedFetch } = useAuth();
+  const { refresh: refreshUnread } = useUnreadMessages();
   const [messages, setMessages] = useState<Message[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<number | null>(null);
@@ -51,6 +61,7 @@ function MessagesPanel() {
     setMessages(messages.map((m) => (m.id === id ? { ...m, read: true } : m)));
     try {
       await authedFetch(`/my/messages/${id}/read`, { method: 'POST' });
+      void refreshUnread();
     } catch {
       // Local state already optimistic; no need to revert for a read marker.
     }
@@ -146,7 +157,18 @@ function MessagesPanel() {
       </aside>
 
       {active ? (
-        <MessageDetail message={active} onDelete={() => remove(active.id)} />
+        <MessageDetail
+          message={active}
+          onDelete={() => remove(active.id)}
+          onReplyPosted={(reply) => {
+            if (!messages) return;
+            setMessages(
+              messages.map((m) =>
+                m.id === active.id ? { ...m, replies: [...m.replies, reply] } : m,
+              ),
+            );
+          }}
+        />
       ) : (
         <AccountSection title="Select a message">
           <p className="text-sm text-[color:var(--color-ink-muted)]">
@@ -158,7 +180,45 @@ function MessagesPanel() {
   );
 }
 
-function MessageDetail({ message, onDelete }: { message: Message; onDelete: () => void }) {
+interface MessageDetailProps {
+  message: Message;
+  onDelete(): void;
+  onReplyPosted(reply: Reply): void;
+}
+
+function MessageDetail({ message, onDelete, onReplyPosted }: MessageDetailProps) {
+  const { user, authedFetch } = useAuth();
+  const [draft, setDraft] = useState('');
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const body = draft.trim();
+    if (!body) return;
+    setSending(true);
+    setError(null);
+    setNote(null);
+    try {
+      const res = await authedFetch<{ success: boolean; email_delivered: boolean; reply: Reply }>(
+        `/my/messages/${message.id}/reply`,
+        { method: 'POST', body: JSON.stringify({ message: body }) },
+      );
+      onReplyPosted(res.reply);
+      setDraft('');
+      setNote(
+        res.email_delivered
+          ? 'Reply sent — emailed to the buyer.'
+          : 'Reply saved. Email delivery failed; the buyer can still read it here.',
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not send reply.');
+    } finally {
+      setSending(false);
+    }
+  }
+
   return (
     <article className="rounded-[var(--radius-lg)] border border-[color:var(--color-border)] bg-[color:var(--color-surface-raised)] p-6">
       <header className="flex flex-wrap items-start justify-between gap-3 mb-5 pb-5 border-b border-[color:var(--color-border)]">
@@ -168,19 +228,13 @@ function MessageDetail({ message, onDelete }: { message: Message; onDelete: () =
           </p>
           <p className="mt-1 text-base font-semibold">{message.sender_name || 'Anonymous'}</p>
           <p className="text-sm text-[color:var(--color-ink-muted)]">
-            <a
-              href={`mailto:${message.sender_email}`}
-              className="text-[color:var(--color-ruby)] hover:underline"
-            >
+            <a href={`mailto:${message.sender_email}`} className="text-[color:var(--color-ruby)] hover:underline">
               {message.sender_email}
             </a>
             {message.sender_phone && (
               <>
                 {' · '}
-                <a
-                  href={`tel:${message.sender_phone}`}
-                  className="text-[color:var(--color-ruby)] hover:underline"
-                >
+                <a href={`tel:${message.sender_phone}`} className="text-[color:var(--color-ruby)] hover:underline">
                   {message.sender_phone}
                 </a>
               </>
@@ -191,41 +245,114 @@ function MessageDetail({ message, onDelete }: { message: Message; onDelete: () =
             {!message.email_delivered && ' · email delivery failed'}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <a
-            href={`mailto:${message.sender_email}?subject=${encodeURIComponent(
-              `Re: ${message.listing?.title ?? 'Your inquiry'}`,
-            )}`}
-            className="inline-flex items-center px-4 py-2 rounded-full bg-[color:var(--color-ruby)] text-white text-sm font-semibold hover:bg-[color:var(--color-ruby-deep)] transition-colors"
-          >
-            Reply by email
-          </a>
-          <button
-            type="button"
-            onClick={onDelete}
-            className="inline-flex items-center px-3 py-2 rounded-full text-sm font-medium text-[color:var(--color-ink-muted)] hover:text-[color:var(--color-ruby)] hover:bg-[color:var(--color-surface-sunken)]"
-          >
-            Delete
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onDelete}
+          className="inline-flex items-center px-3 py-2 rounded-full text-sm font-medium text-[color:var(--color-ink-muted)] hover:text-[color:var(--color-ruby)] hover:bg-[color:var(--color-surface-sunken)]"
+        >
+          Delete thread
+        </button>
       </header>
 
       {message.listing && (
         <p className="mb-4 text-xs text-[color:var(--color-ink-subtle)]">
           About:{' '}
-          <Link
-            href={`/listing/${message.listing.slug}`}
-            className="text-[color:var(--color-ruby)] hover:underline"
-          >
+          <Link href={`/listing/${message.listing.slug}`} className="text-[color:var(--color-ruby)] hover:underline">
             {message.listing.title}
           </Link>
         </p>
       )}
 
-      <div className="prose-listing whitespace-pre-wrap text-[color:var(--color-ink)]">
-        {message.body}
+      <div className="space-y-4">
+        <Bubble
+          who={message.sender_name || 'Buyer'}
+          when={message.date}
+          body={message.body}
+          side="buyer"
+        />
+        {message.replies.map((reply) => (
+          <Bubble
+            key={reply.id}
+            who={user?.display_name ?? 'You'}
+            when={reply.date}
+            body={reply.body}
+            side="seller"
+            note={reply.email_delivered ? 'Emailed to buyer' : 'Saved · email delivery failed'}
+          />
+        ))}
       </div>
+
+      <form
+        onSubmit={onSubmit}
+        className="mt-6 pt-5 border-t border-[color:var(--color-border)] space-y-3"
+        aria-label="Reply to buyer"
+      >
+        <label htmlFor={`reply-${message.id}`} className="block text-xs font-semibold tracking-wider uppercase text-[color:var(--color-ink-subtle)]">
+          Reply
+        </label>
+        <textarea
+          id={`reply-${message.id}`}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          rows={4}
+          placeholder="Type your reply. It's emailed to the buyer and saved here for your records."
+          className="w-full rounded-[var(--radius-md)] bg-[color:var(--color-surface-sunken)] px-3 py-2.5 text-sm focus:ring-2 focus:ring-[color:var(--color-ruby)] focus:outline-none"
+        />
+        {error && (
+          <p role="alert" className="text-sm text-[color:var(--color-ruby-deep)]">{error}</p>
+        )}
+        {note && (
+          <p role="status" className="text-sm text-[color:var(--color-ruby-deep)]">{note}</p>
+        )}
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs text-[color:var(--color-ink-subtle)]">
+            Sends from <strong>{user?.email ?? 'your account'}</strong> · buyer can reply by email.
+          </p>
+          <button
+            type="submit"
+            disabled={sending || draft.trim().length === 0}
+            className="inline-flex items-center px-5 py-2.5 rounded-full bg-[color:var(--color-ruby)] !text-white text-sm font-semibold hover:bg-[color:var(--color-ruby-deep)] disabled:opacity-60 transition-colors"
+          >
+            {sending ? 'Sending…' : 'Send reply'}
+          </button>
+        </div>
+      </form>
     </article>
+  );
+}
+
+function Bubble({
+  who,
+  when,
+  body,
+  side,
+  note,
+}: {
+  who: string;
+  when: string;
+  body: string;
+  side: 'buyer' | 'seller';
+  note?: string;
+}) {
+  const isSeller = side === 'seller';
+  return (
+    <div className={`flex ${isSeller ? 'justify-end' : 'justify-start'}`}>
+      <div
+        className={`max-w-[85%] rounded-[var(--radius-md)] px-4 py-3 text-sm whitespace-pre-wrap ${
+          isSeller
+            ? 'bg-[color:var(--color-ruby-soft)] text-[color:var(--color-ruby-deep)]'
+            : 'bg-[color:var(--color-surface-sunken)] text-[color:var(--color-ink)]'
+        }`}
+      >
+        <p className="text-[10px] font-semibold tracking-[0.14em] uppercase opacity-70 mb-1">
+          {who} · {new Date(when).toLocaleString()}
+        </p>
+        <p>{body}</p>
+        {note && (
+          <p className="mt-2 text-[10px] opacity-70">{note}</p>
+        )}
+      </div>
+    </div>
   );
 }
 
