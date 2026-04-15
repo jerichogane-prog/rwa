@@ -102,7 +102,11 @@ function ListingsPanel() {
             <li key={listing.id} className="flex items-center gap-4 py-3">
               <div className="flex-1 min-w-0">
                 <Link
-                  href={`/listing/${listing.slug}`}
+                  href={
+                    listing.post_status === 'publish'
+                      ? `/listing/${listing.slug}`
+                      : `/listing/preview/${listing.id}`
+                  }
                   className="font-semibold hover:text-[color:var(--color-ruby)] line-clamp-1"
                 >
                   {listing.title}
