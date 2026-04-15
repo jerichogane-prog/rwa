@@ -8,6 +8,8 @@ interface AdCarouselProps {
   intervalMs?: number;
   variant?: 'banner' | 'square' | 'card';
   ariaLabel?: string;
+  /** When true, start on a random slide so each page load shows a different ad first. */
+  randomStart?: boolean;
 }
 
 export function AdCarousel({
@@ -15,8 +17,19 @@ export function AdCarousel({
   intervalMs = 5000,
   variant = 'banner',
   ariaLabel = 'Sponsored advertisements',
+  randomStart = false,
 }: AdCarouselProps) {
   const [index, setIndex] = useState(0);
+
+  // Pick a random starting slide on the client only — doing this in the initial
+  // useState would cause an SSR/CSR hydration mismatch.
+  useEffect(() => {
+    if (randomStart && ads.length > 1) {
+      setIndex(Math.floor(Math.random() * ads.length));
+    }
+    // Run once on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [paused, setPaused] = useState(false);
   const touchStart = useRef<number | null>(null);
 
