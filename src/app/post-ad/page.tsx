@@ -58,6 +58,7 @@ export default function PostAdPage() {
       category: String(data.get('category') ?? ''),
       location: String(data.get('location') ?? ''),
       phone: String(data.get('phone') ?? '').trim(),
+      ad_type: String(data.get('ad_type') ?? 'sell'),
     };
     setError(null);
     setStage('creating');
@@ -154,6 +155,7 @@ export default function PostAdPage() {
       </header>
 
       <form onSubmit={onSubmit} className="space-y-5 rounded-[var(--radius-lg)] border border-[color:var(--color-border)] bg-[color:var(--color-surface-raised)] p-6">
+        <AdTypePicker />
         <TextField label="Title" name="title" required placeholder="2018 Toyota Hilux, low kms" />
         <TextField
           label="Description"
@@ -195,6 +197,55 @@ export default function PostAdPage() {
         </button>
       </form>
     </div>
+  );
+}
+
+const AD_TYPE_OPTIONS: { value: string; label: string; hint: string; icon: string }[] = [
+  { value: 'sell', label: 'For sale', hint: 'Selling an item', icon: '$' },
+  { value: 'buy', label: 'Wanted', hint: 'Looking to buy', icon: '?' },
+  { value: 'rentlease', label: 'Rent / lease', hint: 'Renting or leasing', icon: '◧' },
+  { value: 'lostfound', label: 'Lost & found', hint: 'Lost or found', icon: '!' },
+  { value: 'job', label: 'Job', hint: 'Hiring', icon: '☷' },
+  { value: 'event', label: 'Event', hint: 'Event or gathering', icon: '★' },
+];
+
+function AdTypePicker() {
+  return (
+    <fieldset>
+      <legend className="block text-xs font-semibold tracking-wider uppercase text-[color:var(--color-ink-subtle)] mb-2">
+        Ad type <span className="text-[color:var(--color-ruby)]">*</span>
+      </legend>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {AD_TYPE_OPTIONS.map((opt, i) => (
+          <label
+            key={opt.value}
+            className="relative flex items-start gap-2 p-3 rounded-[var(--radius-md)] border border-[color:var(--color-border)] cursor-pointer transition-colors hover:border-[color:var(--color-ruby)]/40 has-[:checked]:border-[color:var(--color-ruby)] has-[:checked]:bg-[color:var(--color-ruby-soft)]"
+          >
+            <input
+              type="radio"
+              name="ad_type"
+              value={opt.value}
+              defaultChecked={i === 0}
+              className="peer sr-only"
+            />
+            <span
+              aria-hidden
+              className="inline-flex w-6 h-6 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--color-surface-sunken)] text-[color:var(--color-ink-subtle)] text-xs font-bold peer-checked:bg-[color:var(--color-ruby)] peer-checked:text-white"
+            >
+              {opt.icon}
+            </span>
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold text-[color:var(--color-ink)]">
+                {opt.label}
+              </span>
+              <span className="block text-[11px] text-[color:var(--color-ink-muted)] leading-snug">
+                {opt.hint}
+              </span>
+            </span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
   );
 }
 

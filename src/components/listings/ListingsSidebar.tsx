@@ -1,15 +1,17 @@
 import Link from 'next/link';
-import type { TaxonomyNode } from '@/lib/wp';
+import type { AdType, TaxonomyNode } from '@/lib/wp';
 import { SearchForm } from '@/components/search/SearchForm';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { flattenTaxonomy } from '@/lib/taxonomy';
 import type { ActiveFilters } from './FilterBar';
 import { LocationDropdown } from './LocationDropdown';
+import { AdTypeFilter } from './AdTypeFilter';
 
 interface ListingsSidebarProps {
   categories: TaxonomyNode[];
   locations: TaxonomyNode[];
   activeFilters: ActiveFilters;
+  activeType?: AdType;
   minPrice?: number;
   maxPrice?: number;
 }
@@ -27,10 +29,18 @@ function countNodes(nodes: TaxonomyNode[]): number {
   return nodes.reduce((sum, n) => sum + 1 + countNodes(n.children ?? []), 0);
 }
 
-export function ListingsSidebar({ categories, locations, activeFilters, minPrice, maxPrice }: ListingsSidebarProps) {
+export function ListingsSidebar({
+  categories,
+  locations,
+  activeFilters,
+  activeType,
+  minPrice,
+  maxPrice,
+}: ListingsSidebarProps) {
   const baseParams: Record<string, string | undefined> = {
     search: activeFilters.search,
     featured: activeFilters.featured ? '1' : undefined,
+    type: activeType,
     min_price: minPrice !== undefined ? String(minPrice) : undefined,
     max_price: maxPrice !== undefined ? String(maxPrice) : undefined,
   };
@@ -47,6 +57,16 @@ export function ListingsSidebar({ categories, locations, activeFilters, minPrice
           variant="inline"
         />
       </div>
+
+      <AdTypeFilter
+        activeType={activeType}
+        baseParams={{
+          ...baseParams,
+          type: undefined,
+          category: activeFilters.category,
+          location: activeFilters.location,
+        }}
+      />
 
       <FilterSection
         heading="Categories"

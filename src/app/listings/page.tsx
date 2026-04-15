@@ -173,6 +173,7 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
           categories={categories}
           locations={locations}
           activeFilters={activeFilters}
+          activeType={type}
           minPrice={minPrice}
           maxPrice={maxPrice}
         />
