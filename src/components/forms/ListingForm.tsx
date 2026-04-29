@@ -239,7 +239,11 @@ export function ListingForm({
       </fieldset>
 
       {galleryPanel}
-      <ImageUploader value={images} onChange={onImagesChange} />
+      <ImageUploader
+        value={images}
+        onChange={onImagesChange}
+        uploading={stage === 'uploading'}
+      />
 
       {error && (
         <p role="alert" className="text-sm text-[color:var(--color-ruby-deep)]">
