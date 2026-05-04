@@ -20,6 +20,7 @@ interface AdSlotProps {
  * group slugs configured in WordPress. Edit here if the WP groups are renamed.
  */
 const SLOT_GROUP_MAP: Record<string, string> = {
+  'home-top': 'home-page-group',
   'home-leaderboard': 'home-page-group',
   'home-midroll': 'home-page-group',
   'home-footer': 'home-page-group',
