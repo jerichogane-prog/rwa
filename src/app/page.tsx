@@ -202,6 +202,13 @@ export default function HomePage() {
   return (
     <>
       <JsonLd data={websiteSchema()} id="website-ld" />
+
+      <div className="container-page pt-4 md:pt-6">
+        <Suspense fallback={null}>
+          <AdSlot slot="home-top" variant="banner" />
+        </Suspense>
+      </div>
+
       <Hero />
 
       <div className="container-page mt-12 md:mt-16">
