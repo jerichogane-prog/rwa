@@ -48,6 +48,8 @@ export interface ListingFormProps {
   submitLabel: string;
   submittingLabel?: string;
   stage: 'idle' | 'submitting' | 'uploading';
+  /** Upload progress (0–100) — only meaningful when stage === 'uploading'. */
+  uploadProgress?: number;
   error?: string | null;
 }
 
@@ -71,6 +73,7 @@ export function ListingForm({
   submitLabel,
   submittingLabel,
   stage,
+  uploadProgress = 0,
   error,
 }: ListingFormProps) {
   const init = { ...DEFAULT_VALUES, ...initialValues };
@@ -239,7 +242,12 @@ export function ListingForm({
       </fieldset>
 
       {galleryPanel}
-      <ImageUploader value={images} onChange={onImagesChange} />
+      <ImageUploader
+        value={images}
+        onChange={onImagesChange}
+        uploading={stage === 'uploading'}
+        progress={uploadProgress}
+      />
 
       {error && (
         <p role="alert" className="text-sm text-[color:var(--color-ruby-deep)]">
@@ -255,7 +263,7 @@ export function ListingForm({
         {stage === 'submitting'
           ? submittingLabel || 'Submitting…'
           : stage === 'uploading'
-            ? `Uploading ${images.length} photo${images.length === 1 ? '' : 's'}…`
+            ? `Uploading ${images.length} photo${images.length === 1 ? '' : 's'}… ${uploadProgress}%`
             : submitLabel}
       </button>
       <p className="text-[11px] text-[color:var(--color-ink-subtle)] text-center">

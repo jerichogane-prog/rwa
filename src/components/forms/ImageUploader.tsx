@@ -13,6 +13,10 @@ interface ImageUploaderProps {
   onChange(next: PendingImage[]): void;
   max?: number;
   maxBytes?: number;
+  /** True while files are being POSTed to the server. */
+  uploading?: boolean;
+  /** 0–100 percent. Drives the progress bar when uploading. */
+  progress?: number;
 }
 
 const DEFAULT_MAX = 8;
@@ -24,6 +28,8 @@ export function ImageUploader({
   onChange,
   max = DEFAULT_MAX,
   maxBytes = DEFAULT_MAX_BYTES,
+  uploading = false,
+  progress = 0,
 }: ImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const inputId = useId();
@@ -131,31 +137,99 @@ export function ImageUploader({
       )}
 
       {value.length > 0 && (
-        <ul className="mt-4 grid grid-cols-3 sm:grid-cols-4 gap-3">
-          {value.map((img, i) => (
-            <li key={img.id} className="relative group aspect-square">
-              <img
-                src={img.previewUrl}
-                alt=""
-                className="w-full h-full object-cover rounded-[var(--radius-sm)]"
-              />
-              {i === 0 && (
-                <span className="absolute top-1 left-1 px-1.5 py-0.5 text-[9px] font-semibold tracking-wider uppercase bg-[color:var(--color-ruby)] text-white rounded-full">
-                  Cover
+        <>
+          {uploading && (
+            <div
+              className="mt-4"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={progress}
+              aria-label="Uploading photos"
+            >
+              <div className="flex items-center justify-between text-xs text-[color:var(--color-ink-muted)] mb-1.5">
+                <span className="flex items-center gap-1.5">
+                  <Spinner />
+                  Uploading {value.length} photo{value.length === 1 ? '' : 's'}…
                 </span>
-              )}
-              <button
-                type="button"
-                onClick={() => remove(img.id)}
-                aria-label={`Remove ${img.file.name}`}
-                className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/70 text-white text-xs leading-none flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100"
-              >
-                ×
-              </button>
-            </li>
-          ))}
-        </ul>
+                <span suppressHydrationWarning className="tabular-nums font-semibold">
+                  {progress}%
+                </span>
+              </div>
+              <div className="h-1.5 rounded-full bg-[color:var(--color-surface-sunken)] overflow-hidden">
+                <div
+                  className="h-full bg-[color:var(--color-ruby)] transition-[width] duration-300 ease-[var(--ease-out-expo)] rwa-progress-shimmer"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          <ul className={`mt-4 grid grid-cols-3 sm:grid-cols-4 gap-3 ${uploading ? 'pointer-events-none' : ''}`}>
+            {value.map((img, i) => (
+              <li key={img.id} className="relative group aspect-square">
+                <img
+                  src={img.previewUrl}
+                  alt=""
+                  className={`w-full h-full object-cover rounded-[var(--radius-sm)] transition-[filter,opacity] duration-300 ${
+                    uploading ? 'brightness-75 saturate-75' : ''
+                  }`}
+                />
+
+                {uploading && (
+                  <div className="absolute inset-0 rounded-[var(--radius-sm)] flex items-center justify-center bg-black/25 backdrop-blur-[1px]">
+                    <Spinner light />
+                  </div>
+                )}
+
+                {i === 0 && (
+                  <span className="absolute top-1 left-1 px-1.5 py-0.5 text-[9px] font-semibold tracking-wider uppercase bg-[color:var(--color-ruby)] text-white rounded-full">
+                    Cover
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => remove(img.id)}
+                  aria-label={`Remove ${img.file.name}`}
+                  disabled={uploading}
+                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/70 text-white text-xs leading-none flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 disabled:hidden"
+                >
+                  ×
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
+
     </div>
+  );
+}
+
+function Spinner({ light = false }: { light?: boolean }) {
+  return (
+    <svg
+      className="animate-spin"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="9"
+        stroke={light ? 'rgba(255,255,255,0.35)' : 'currentColor'}
+        strokeOpacity={light ? 1 : 0.25}
+        strokeWidth="3"
+      />
+      <path
+        d="M21 12a9 9 0 0 0-9-9"
+        stroke={light ? '#fff' : 'currentColor'}
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
