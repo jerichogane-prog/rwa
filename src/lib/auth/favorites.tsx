@@ -1,6 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useAuth } from './AuthProvider';
 
 const STORAGE_KEY = 'rwa-favorites-cache';
@@ -28,26 +36,39 @@ function writeCache(ids: number[]) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
 }
 
-export function useFavorites(): FavoritesAPI {
+const FavoritesContext = createContext<FavoritesAPI | null>(null);
+
+export function FavoritesProvider({ children }: { children: ReactNode }) {
   const { user, authedFetch } = useAuth();
   const [ids, setIds] = useState<Set<number>>(() => new Set(readCache()));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Single fetch per user change — shared by every consumer.
   useEffect(() => {
     if (!user) {
       setIds(new Set());
+      writeCache([]);
       return;
     }
+    let cancelled = false;
     setLoading(true);
     authedFetch<{ id: number }[]>('/my/favorites')
       .then((items) => {
+        if (cancelled) return;
         const next = new Set(items.map((it) => it.id));
         setIds(next);
         writeCache(Array.from(next));
       })
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
+      .catch((err: Error) => {
+        if (!cancelled) setError(err.message);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [user, authedFetch]);
 
   const toggle = useCallback(
@@ -66,7 +87,6 @@ export function useFavorites(): FavoritesAPI {
         await authedFetch(`/my/favorites/${id}`, { method: wasFav ? 'DELETE' : 'POST' });
         return !wasFav;
       } catch (err) {
-        // Roll back
         const reverted = new Set(ids);
         setIds(reverted);
         writeCache(Array.from(reverted));
@@ -77,11 +97,24 @@ export function useFavorites(): FavoritesAPI {
     [ids, user, authedFetch],
   );
 
-  return {
-    ids,
-    isFavorite: useCallback((id: number) => ids.has(id), [ids]),
-    toggle,
-    loading,
-    error,
-  };
+  const value = useMemo<FavoritesAPI>(
+    () => ({
+      ids,
+      isFavorite: (id: number) => ids.has(id),
+      toggle,
+      loading,
+      error,
+    }),
+    [ids, toggle, loading, error],
+  );
+
+  return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>;
+}
+
+export function useFavorites(): FavoritesAPI {
+  const ctx = useContext(FavoritesContext);
+  if (!ctx) {
+    throw new Error('useFavorites must be used within <FavoritesProvider>.');
+  }
+  return ctx;
 }
