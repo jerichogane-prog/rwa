@@ -8,8 +8,21 @@ import { useAuth } from '@/lib/auth/AuthProvider';
 import type { ListingSummary } from '@/lib/wp';
 
 type Status = 'publish' | 'draft' | 'pending' | 'rtcl-expired';
-type MyListing = ListingSummary & { post_status: Status };
+type MyListing = ListingSummary & {
+  post_status: Status;
+  expires_at?: string | null;
+};
 type Filter = 'all' | Status;
+
+// RTCL's default listing duration. Adjust if the CMS uses a different value.
+const LISTING_DURATION_DAYS = 30;
+
+function resolveExpiry(listing: MyListing): string | null {
+  if (listing.expires_at) return listing.expires_at;
+  const postedAt = new Date(listing.date).getTime();
+  if (Number.isNaN(postedAt)) return null;
+  return new Date(postedAt + LISTING_DURATION_DAYS * 86_400_000).toISOString();
+}
 
 const TABS: { value: Filter; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -169,7 +182,13 @@ function ListingsPanel() {
                   </Link>
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[color:var(--color-ink-subtle)]">
                     <StatusBadge status={listing.post_status} />
-                    <span>{new Date(listing.date).toLocaleDateString()}</span>
+                    <span>Posted {new Date(listing.date).toLocaleDateString()}</span>
+                    {(() => {
+                      const expiry = resolveExpiry(listing);
+                      return expiry ? (
+                        <ExpiryLabel iso={expiry} expired={isExpired} />
+                      ) : null;
+                    })()}
                     {listing.price > 0 && (
                       <span className="font-semibold text-[color:var(--color-ruby)]">
                         ${listing.price.toLocaleString()}
@@ -232,6 +251,35 @@ function ListingsPanel() {
         </ul>
       )}
     </AccountSection>
+  );
+}
+
+function ExpiryLabel({ iso, expired }: { iso: string; expired: boolean }) {
+  const ts = new Date(iso).getTime();
+  if (Number.isNaN(ts)) return null;
+
+  const diffDays = Math.round((ts - Date.now()) / 86_400_000);
+  const dateStr = new Date(iso).toLocaleDateString();
+
+  if (expired || diffDays < 0) {
+    return (
+      <span suppressHydrationWarning className="text-[color:var(--color-ruby-deep)]">
+        Expired {dateStr}
+      </span>
+    );
+  }
+
+  const soon = diffDays <= 7;
+  const relative =
+    diffDays === 0 ? 'today' : diffDays === 1 ? 'tomorrow' : `in ${diffDays} days`;
+
+  return (
+    <span
+      suppressHydrationWarning
+      className={soon ? 'text-[oklch(42%_0.13_25)]' : undefined}
+    >
+      Expires {relative} · {dateStr}
+    </span>
   );
 }
 
