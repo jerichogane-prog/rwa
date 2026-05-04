@@ -18,20 +18,23 @@ interface ListingCardProps {
   listing: ListingSummary;
   variant?: 'default' | 'feature';
   priority?: boolean;
+  /** When true, render the wrapper as a non-link <div> so the card can be
+   *  embedded inside an outer <Link> without producing nested <a> elements. */
+  noLink?: boolean;
 }
 
-export function ListingCard({ listing, variant = 'default', priority = false }: ListingCardProps) {
+export function ListingCard({ listing, variant = 'default', priority = false, noLink = false }: ListingCardProps) {
   const isFeature = variant === 'feature';
   const category = listing.categories[0]?.name ? decodeEntities(listing.categories[0].name) : undefined;
   const location = listing.locations[0]?.name ? decodeEntities(listing.locations[0].name) : undefined;
   const title = decodeEntities(listing.title);
   const excerpt = listing.excerpt ? decodeEntities(listing.excerpt) : '';
 
-  return (
-    <Link
-      href={`/listing/${listing.slug}`}
-      className="group relative flex flex-col overflow-hidden rounded-[var(--radius-lg)] bg-[color:var(--color-surface-raised)] border border-[color:var(--color-border)] hover:border-[color:var(--color-border-strong)] hover:shadow-[var(--shadow-lift)] transition-[box-shadow,transform,border-color] duration-[var(--duration-normal)] ease-[var(--ease-out-expo)] hover:-translate-y-0.5"
-    >
+  const wrapperClassName =
+    'group relative flex flex-col overflow-hidden rounded-[var(--radius-lg)] bg-[color:var(--color-surface-raised)] border border-[color:var(--color-border)] hover:border-[color:var(--color-border-strong)] hover:shadow-[var(--shadow-lift)] transition-[box-shadow,transform,border-color] duration-[var(--duration-normal)] ease-[var(--ease-out-expo)] hover:-translate-y-0.5';
+
+  const inner = (
+    <>
       <div
         className={`relative w-full bg-[color:var(--color-surface-sunken)] overflow-hidden ${
           isFeature ? 'aspect-[16/10]' : 'aspect-[4/3]'
@@ -101,6 +104,14 @@ export function ListingCard({ listing, variant = 'default', priority = false }: 
           </span>
         </div>
       </div>
+    </>
+  );
+
+  return noLink ? (
+    <div className={wrapperClassName}>{inner}</div>
+  ) : (
+    <Link href={`/listing/${listing.slug}`} className={wrapperClassName}>
+      {inner}
     </Link>
   );
 }

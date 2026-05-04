@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useFavorites } from '@/lib/auth/favorites';
 import { useAuth } from '@/lib/auth/AuthProvider';
 
@@ -12,6 +13,7 @@ interface FavoriteButtonProps {
 export function FavoriteButton({ listingId, variant = 'card' }: FavoriteButtonProps) {
   const { user } = useAuth();
   const { isFavorite, toggle } = useFavorites();
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const fav = isFavorite(listingId);
 
@@ -19,14 +21,18 @@ export function FavoriteButton({ listingId, variant = 'card' }: FavoriteButtonPr
 
   if (!user) {
     return (
-      <a
-        href="/login"
+      <button
+        type="button"
         aria-label="Log in to save"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          router.push('/login');
+        }}
         className={`absolute top-3 right-3 ${sizeCls} z-10 inline-flex items-center justify-center rounded-full bg-[color:var(--color-surface-raised)]/90 backdrop-blur-sm border border-[color:var(--color-border)] text-[color:var(--color-ink-subtle)] hover:text-[color:var(--color-ruby)] transition-colors`}
-        onClick={(e) => e.stopPropagation()}
       >
         <HeartIcon filled={false} />
-      </a>
+      </button>
     );
   }
 

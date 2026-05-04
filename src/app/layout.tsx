@@ -3,6 +3,7 @@ import { Inter, Archivo } from 'next/font/google';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { SiteFooter } from '@/components/site/SiteFooter';
 import { AuthProvider } from '@/lib/auth/AuthProvider';
+import { FavoritesProvider } from '@/lib/auth/favorites';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { organizationSchema } from '@/lib/seo/schema';
 import './globals.css';
@@ -74,15 +75,17 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${inter.variable} ${archivo.variable}`}>
-      <body className="min-h-screen flex flex-col bg-[color:var(--color-surface)] text-[color:var(--color-ink)]">
+      <body suppressHydrationWarning className="min-h-screen flex flex-col bg-[color:var(--color-surface)] text-[color:var(--color-ink)]">
         <a href="#main" className="skip-link">Skip to content</a>
         <JsonLd data={organizationSchema()} id="organization-ld" />
         <AuthProvider>
-          <SiteHeader />
-          <main id="main" className="flex-1">
-            {children}
-          </main>
-          <SiteFooter />
+          <FavoritesProvider>
+            <SiteHeader />
+            <main id="main" className="flex-1">
+              {children}
+            </main>
+            <SiteFooter />
+          </FavoritesProvider>
         </AuthProvider>
       </body>
     </html>
