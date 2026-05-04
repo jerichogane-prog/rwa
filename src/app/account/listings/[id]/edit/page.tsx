@@ -49,7 +49,7 @@ export default function EditListingPage({ params }: EditPageProps) {
   const { id } = use(params);
   const listingId = Number(id);
   const router = useRouter();
-  const { user, loading: authLoading, authedFetch } = useAuth();
+  const { user, loading: authLoading, authedFetch, authedUpload } = useAuth();
 
   const [listing, setListing] = useState<ListingDetail | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -58,6 +58,7 @@ export default function EditListingPage({ params }: EditPageProps) {
   const [removingId, setRemovingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [stage, setStage] = useState<'idle' | 'submitting' | 'uploading'>('idle');
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [savedStatus, setSavedStatus] = useState<string | null>(null);
 
   useEffect(() => {
@@ -97,12 +98,14 @@ export default function EditListingPage({ params }: EditPageProps) {
 
         if (images.length > 0) {
           setStage('uploading');
+          setUploadProgress(0);
           const form = new FormData();
           images.forEach((img, i) => form.append(`image_${i}`, img.file, img.file.name));
           try {
-            const res = await authedFetch<{ images: ExistingImage[] }>(
+            const res = await authedUpload<{ images: ExistingImage[] }>(
               `/my/listings/${listingId}/images`,
-              { method: 'POST', body: form },
+              form,
+              { onProgress: setUploadProgress },
             );
             setExistingImages(res.images ?? existingImages);
           } catch (uploadErr) {
@@ -121,9 +124,10 @@ export default function EditListingPage({ params }: EditPageProps) {
         setError(err instanceof Error ? err.message : 'Could not save your listing.');
       } finally {
         setStage('idle');
+        setUploadProgress(0);
       }
     },
-    [authedFetch, existingImages, images, listingId],
+    [authedFetch, authedUpload, existingImages, images, listingId],
   );
 
   const removeExisting = useCallback(
@@ -276,6 +280,7 @@ export default function EditListingPage({ params }: EditPageProps) {
         submitLabel="Save changes"
         submittingLabel="Saving…"
         stage={stage}
+        uploadProgress={uploadProgress}
         error={error}
       />
     </div>

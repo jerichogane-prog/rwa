@@ -16,11 +16,12 @@ interface SubmitResponse {
 
 export default function PostAdPage() {
   const router = useRouter();
-  const { user, loading, authedFetch } = useAuth();
+  const { user, loading, authedFetch, authedUpload } = useAuth();
   const [images, setImages] = useState<PendingImage[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<SubmitResponse | null>(null);
   const [stage, setStage] = useState<'idle' | 'submitting' | 'uploading'>('idle');
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -39,12 +40,12 @@ export default function PostAdPage() {
 
       if (images.length > 0) {
         setStage('uploading');
+        setUploadProgress(0);
         const form = new FormData();
         images.forEach((img, i) => form.append(`image_${i}`, img.file, img.file.name));
         try {
-          await authedFetch(`/my/listings/${response.id}/images`, {
-            method: 'POST',
-            body: form,
+          await authedUpload(`/my/listings/${response.id}/images`, form, {
+            onProgress: setUploadProgress,
           });
         } catch (uploadErr) {
           setError(
@@ -62,6 +63,7 @@ export default function PostAdPage() {
       setError(err instanceof Error ? err.message : 'Could not submit your listing.');
     } finally {
       setStage('idle');
+      setUploadProgress(0);
     }
   }
 
@@ -134,6 +136,7 @@ export default function PostAdPage() {
         submitLabel="Submit for review"
         submittingLabel="Submitting…"
         stage={stage}
+        uploadProgress={uploadProgress}
         error={error}
       />
     </div>

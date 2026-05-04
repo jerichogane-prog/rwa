@@ -171,3 +171,42 @@ textarea:focus-visible {
 .prose-listing img { max-width: 100%; height: auto; border-radius: var(--radius-md); margin-block: 1em; }
 .prose-listing strong { font-weight: 700; }
 .prose-listing blockquote { border-inline-start: 3px solid var(--color-ruby); padding-inline-start: 1em; font-style: italic; color: var(--color-ink-muted); }
+
+/* Animated stripe overlay used by the image-upload progress bar. */
+@keyframes rwa-progress-shimmer {
+  from { background-position: 0 0; }
+  to   { background-position: 24px 0; }
+}
+.rwa-progress-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--color-ruby) 100%, white 0%) 0%,
+    color-mix(in oklch, var(--color-ruby) 70%,  white 30%) 50%,
+    color-mix(in oklch, var(--color-ruby) 100%, white 0%) 100%
+  );
+  background-size: 24px 100%;
+  animation: rwa-progress-shimmer 900ms linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rwa-progress-shimmer { animation: none; }
+}
+
+/* Listing-image lightbox entrance. */
+@keyframes rwa-lightbox-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes rwa-lightbox-zoom-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.rwa-lightbox-fade {
+  animation: rwa-lightbox-fade-in 180ms ease-out;
+}
+.rwa-lightbox-zoom {
+  animation: rwa-lightbox-zoom-in 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .rwa-lightbox-fade,
+  .rwa-lightbox-zoom { animation: none; }
+}

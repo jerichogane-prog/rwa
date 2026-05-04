@@ -20,6 +20,12 @@ interface AuthContextValue {
   register(payload: RegisterPayload): Promise<RegisterResult>;
   logout(): Promise<void>;
   authedFetch<T>(path: string, init?: RequestInit): Promise<T>;
+  /** Upload FormData with real progress events (XHR-backed). */
+  authedUpload<T>(
+    path: string,
+    body: FormData,
+    options?: { method?: 'POST' | 'PUT'; onProgress?: (percent: number) => void },
+  ): Promise<T>;
   verifyEmail(userId: number, hash: string): Promise<void>;
   resendVerification(username: string): Promise<void>;
   applyTokens(tokens: AuthTokens): void;
@@ -253,6 +259,72 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [refresh],
   );
 
+  const authedUpload = useCallback(
+    async <T,>(
+      path: string,
+      body: FormData,
+      options?: { method?: 'POST' | 'PUT'; onProgress?: (percent: number) => void },
+    ): Promise<T> => {
+      let current = readStorage();
+      if (current && current.expires_at < Date.now()) {
+        current = await refresh();
+      }
+      if (!current) throw new Error('Not authenticated');
+
+      const method = options?.method ?? 'POST';
+
+      const send = (token: string) =>
+        new Promise<{ status: number; body: unknown }>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open(method, `${API_BASE}${path}`);
+          xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+          xhr.responseType = 'text';
+
+          xhr.upload.onprogress = (event) => {
+            if (!options?.onProgress) return;
+            const percent = event.lengthComputable
+              ? Math.min(100, Math.round((event.loaded / event.total) * 100))
+              : 0;
+            options.onProgress(percent);
+          };
+
+          xhr.onload = () => {
+            let parsed: unknown = {};
+            try {
+              parsed = xhr.responseText ? JSON.parse(xhr.responseText) : {};
+            } catch {
+              parsed = {};
+            }
+            resolve({ status: xhr.status, body: parsed });
+          };
+          xhr.onerror = () => reject(new Error('Network error during upload'));
+          xhr.onabort = () => reject(new Error('Upload aborted'));
+
+          xhr.send(body);
+        });
+
+      let result = await send(current.access_token);
+      if (result.status === 401) {
+        const refreshed = await refresh();
+        if (!refreshed) throw new Error('Session expired');
+        result = await send(refreshed.access_token);
+      }
+
+      if (result.status < 200 || result.status >= 300) {
+        const message =
+          (result.body as { message?: string })?.message ||
+          (result.body as { code?: string })?.code ||
+          `Upload failed (${result.status})`;
+        throw new Error(message);
+      }
+
+      // Snap to 100 — some browsers stop firing progress before onload.
+      options?.onProgress?.(100);
+      return result.body as T;
+    },
+    [refresh],
+  );
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user: state?.user ?? null,
@@ -261,12 +333,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       register,
       logout,
       authedFetch,
+      authedUpload,
       verifyEmail,
       resendVerification,
       applyTokens,
       updateUser,
     }),
-    [state, loading, login, register, logout, authedFetch, verifyEmail, resendVerification, applyTokens, updateUser],
+    [state, loading, login, register, logout, authedFetch, authedUpload, verifyEmail, resendVerification, applyTokens, updateUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
